@@ -1,0 +1,3 @@
+pseudo code for main endpoints so not only, login, signup logics but also stuff like
+uploading cvs, and personal info, and experience, education, skills and allowing modifications
+as well as parsing all the info and whatnot

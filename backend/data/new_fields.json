@@ -1,0 +1,51 @@
+{
+  "fields": {
+    "Software Engineering": [
+      { "label": "Full Stack",        "value": "full stack" },
+      { "label": "Backend",           "value": "backend" },
+      { "label": "Frontend",          "value": "frontend" },
+      { "label": "Mobile",            "value": "mobile" },
+      { "label": "DevOps",            "value": "devops" },
+      { "label": "Platform",          "value": "platform" },
+      { "label": "Security",          "value": "security" },
+      { "label": "Embedded",          "value": "embedded" }
+    ],
+    "Data & AI": [
+      { "label": "Machine Learning",  "value": "machine learning" },
+      { "label": "Data Science",      "value": "data science" },
+      { "label": "Data Engineering",  "value": "data engineering" },
+      { "label": "AI / LLMs",         "value": "ai" },
+      { "label": "Computer Vision",   "value": "computer vision" },
+      { "label": "NLP",               "value": "nlp" },
+      { "label": "Analytics",         "value": "analytics" }
+    ],
+    "Infrastructure & Cloud": [
+      { "label": "Cloud",             "value": "cloud" },
+      { "label": "Infrastructure",    "value": "infrastructure" },
+      { "label": "Site Reliability",  "value": "sre" },
+      { "label": "Database",          "value": "database" }
+    ],
+    "Engineering": [
+      { "label": "Hardware",          "value": "hardware" },
+      { "label": "Mechanical",        "value": "mechanical" },
+      { "label": "Electrical",        "value": "electrical" },
+      { "label": "Robotics",          "value": "robotics" },
+      { "label": "Firmware",          "value": "firmware" },
+      { "label": "Systems",           "value": "systems" }
+    ],
+    "Other": [
+      { "label": "Research",          "value": "research" },
+      { "label": "Game Dev",          "value": "game development" },
+      { "label": "Blockchain",        "value": "blockchain" },
+      { "label": "QA / Testing",      "value": "qa" },
+			{ "label": "Marketing",           "value": "marketing" },
+			{ "label": "Sales",               "value": "sales" },
+			{ "label": "Accounting",          "value": "accounting" },
+			{ "label": "HR",                  "value": "hr" },
+			{ "label": "Legal",               "value": "legal" },
+			{ "label": "Project Manager",     "value": "project manager" },
+			{ "label": "Product Manager",     "value": "product manager" },
+			{ "label": "Customer Support",    "value": "customer support" }
+  ]
+}
+}

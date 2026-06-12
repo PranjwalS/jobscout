@@ -1,0 +1,38 @@
+well we oughtta use latex,
+html to text is wacky and hard, maintaing templates must be easier in latex to be fair
+
+
+SwiftLaTeX renders PDF preview (canvas, read only)
+user clicks a region → PDF.js bounding boxes detect which section
+→ floating editor panel opens for that section (not a side panel, literally a popover near where they clicked)
+→ user edits in the popover
+→ cv_json updates → .tex regenerates → SwiftLaTeX recompiles → canvas updates
+
+
+backend parts:
+    blank .tex templates (one per template style)
+X    cv_json per user
+
+    backend takes cv_json + chosen template
+    fills the .tex with all content + bakes in the \tagged{id}{text} macros for every field (BASICALLY A TRANSLATOR)
+    sends back the filled .tex string
+
+frontend parts:
+
+    complete ready-to-compile .tex with all IDs embedded
+    feeds it to SwiftLaTeX → renders
+    PDF.js reads the tagged anchors → builds the clickable overlay
+
+    on save:
+    frontend sends updated cv_json and backend refills the template
+    backend compiles with pdflatex → stores PDF   (or xelatex/xetex to have some compiler as swiflatex ig)
+    backend also updates away the cv_json in schema
+
+***every atomic piece of cv_json needs an ID***
+
+
+wait so now we gotta make the empty .tex file for the template?
+and right after taht we need to make a thing that basically combines the .tex with the cv_json right, and it kinda uses some kind of looping logic to do that based on id prefixes adn then ti also just labels the exact ids next to everything hidden in the final latex code that goes ahead right
+
+SO DO ALL THAT, do you have all the parts right, u literally know what the whole shtick must be like in terms of the id stuff, you have the map for taht right, like u literally just made the stamper, reverse engineer the stamper basically kinda thing and ill also provide a filled cv that i currentyl use, not saying its good or anything,b tu maybe you could use the outer parts of it to make the first template basically
+MAKE IT SO THAT ITS SCALABLE REGARDLESS OF WHATEVER TEMPLATES ARE ADDED, THE USER CAN PICK ONE AS PARAM AND PASSED INTO THIS JSON TO TEX TRANSLATOR and it just works perfectly so do what is needed, be that in my head; not every fields in cv_json needs to be put into the template, depends moreso on the chosen template (BIG REALIZATION) and so maybe in the template naturally, the outer sections have hardcoded ids or well labels kinda like "education" and inside education it has a "education_[anything]_date" and whatnot u get what im saying, so every template has labels, leaving the anything part empty obviosuly, and bascially the cv_json file is the one that kinda links them together matching the labels on both sides?

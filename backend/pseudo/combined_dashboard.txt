@@ -1,0 +1,79 @@
+pseudo ideas for the actual dashboard creation, will work alongside a main.py endpoint called from front by user, this is the spot showing all the possibilities to user
+as in;
+    all skills available
+    all locations available
+    all fields available
+        (fetches from some backend .json file with all skills and locations and all fields possibilities)
+        (INCLUDES AND EXCLUDES for all 3 above)
+
+    As well as allowing the basic settings like;
+        dashboard name
+        dashboard job_type
+        ... etc (for later to figure out)
+
+    As well as allowing misc stuff like (user optional);
+        salary
+        requirements
+        season (if co-op/internship) and length of work (contract, co-op, etc)
+
+    
+and also some endpoints that manage providing logs on new jobs, as well as sending emails/notifications regarding high scoring jobs and whatnot.
+
+NOTE: on profiles page for CareerTwin, allow at the bottom the user to go through a long form that basically allows them to pick their skills and set them to skill level 1-5 and basically store that info on the ones that were included, with the ability to "add other SKILL" and after that query through the current skills complete set and see whether its already there just with a similar name (ask "did you mean xxxxx")
+
+Flow;
+
+Make it simple to an onboarding, split into about 5 sections and maintaining a sense of guide;
+    1. Ask for simple stuff on window 1 like dashboardname, dashboard description, job_type (full-time, part-time, co-op), ask whether user wants to fetch locations, skills, fields info from a list of their previous configs (and later templates)
+    2. Ask for fields that the user is looking for, cap out at 3 for now since quite broad, and allow picking excludable fields too along with it
+    3. Use fields information to pull the relevant set of skills options, allowing in a single forms users to either +, ., - for every job, so either INCLUDES, Neutral, EXCLUDES
+    4. Finally, allow INCLUDES and EXCLUDES for locations and companies in one place;  
+        for locations, 1. Allow user to input a specific location and determine a radius around it OR 2. Provide list of countries (with search), as a user picks, it horizontally expands to the Right, and just shows a list of cities (with search), and basically allow users to pick countries or cities as they like or dislike, hence with +, ., - logic again; BUT IMPORTANTLY, ask user whether they want to keep the other locations that are left as "." status, inside or outside the configs, so basically ask are "+" being preferences or hard INCLUDES
+        for companies, provide list of companies that are famous in a small grid, but basically, allow users to search through a set of companies and allow mainly +, ., - where you ask again whether the "+" are "+" being preferences or hard INCLUDES.
+    5. Preferences window; ask user regarding any other information like SALARY (weekly/monthly/hourly/yearly...), if Co-Op chosen then let them pick the duration of their work terms, allow to define minimal starting and maximal ending dates, allow picking Seasons to include. Allow users to define restrictions (figure this out later)
+
+    IMPORTANT; on all the pages; please provide short summary of their decision, like just textually represent what their choices mean so they can understand the logic on how their configs are used, and hence change if needed.
+    AND at the end of dashboard creation, on page 6, just provide a full summary of all their decision with direct links to bring them back for mods. And show a Launch Dashboard at the end.
+
+Make it similar to how onboarding works on big company pages when setting up a new account for smth, clean and informative, and be textual and helpful about every decision so the users know what they are doing at all time.
+
+
+
+
+combined with fetch dashboard logic:
+
+
+pseudo code config specific filtering per dashboard config, works as function for endpoints in main.py when user asks for a specific dashboard; 
+
+    backend owns the filtering logic, validates the user's actual config from the DB server-side, and returns only what they're entitled to see. 
+    you never trust the client to tell you what it's allowed to fetch. just paginate the response too so you're not sending 500 jobs at once 
+    like 20-50 at a time with infinite scroll or pagination on the frontend.
+
+
+    Just takes as input param what dashboard id is that user wants, FIRST; it goes through user_jobs to fetch all the jobs given user has applied to or already had scored/gened in the given config
+    and SECOND. goes into dashboard_configs table, fetches the exact configs, translates to code and applies through the jobs table for any new jobs not already in user_jobs
+    AND then slowly sends forward 20-50 jobs for the jobs that hit (pagination frontend)
+
+    moreover; 
+    perhaps since scoring jobs is a person by person thing, hmm idk... ig ill have two endpoints ones to fetch everything already existing in the dashboard, 
+    and another which runs through jobs for not already in user jobs and adds those while scoring and whatnot to those specifically ig, and ig once a day for every user,
+     ill just run a job whre it auto fetches from the non already in user jobs to get added to user_jobs basically
+
+    so maybe; (the first two run whenever a user particularly clicks on a dashboard)
+    # POST /dashboard/{id}/sync
+    #   → filters master jobs table against config
+    #   → inserts missing ones into user_jobs (score=null, status='new')
+    #   → returns count of new jobs added
+
+    # GET /dashboard/{id}/jobs
+    #   → returns paginated user_jobs for this config
+    #   → sorted by score desc (nulls last), then created_at desc
+
+    # CRON daily   → auto-runs the new job fetch using the POST above and initiates the > scoring/generation pipeline for all active users
+
+
+i believe, if a user was to edit their dashboard configs immensely, then flush all history in /existing         
+
+
+# user can manually trigger it too (or you call it on dashboard open if last sync was >X hours ago).
+REGARDING THE POST ^

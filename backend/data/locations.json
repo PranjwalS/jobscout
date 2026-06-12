@@ -1,0 +1,44 @@
+{
+  "locations": [
+    { "label": "Toronto, ON",       "value": "Toronto",           "country": "Canada",    "remote": false },
+    { "label": "Waterloo, ON",      "value": "Waterloo",          "country": "Canada",    "remote": false },
+    { "label": "Vancouver, BC",     "value": "Vancouver",         "country": "Canada",    "remote": false },
+    { "label": "Montreal, QC",      "value": "Montreal",          "country": "Canada",    "remote": false },
+    { "label": "Ottawa, ON",        "value": "Ottawa",            "country": "Canada",    "remote": false },
+    { "label": "Calgary, AB",       "value": "Calgary",           "country": "Canada",    "remote": false },
+    { "label": "Edmonton, AB",      "value": "Edmonton",          "country": "Canada",    "remote": false },
+    { "label": "Canada (any)",      "value": "Canada",            "country": "Canada",    "remote": false },
+    { "label": "Remote (Canada)",   "value": "Remote Canada",     "country": "Canada",    "remote": true  },
+
+    { "label": "San Francisco, CA", "value": "San Francisco",     "country": "USA",       "remote": false },
+    { "label": "New York, NY",      "value": "New York",          "country": "USA",       "remote": false },
+    { "label": "Seattle, WA",       "value": "Seattle",           "country": "USA",       "remote": false },
+    { "label": "Austin, TX",        "value": "Austin",            "country": "USA",       "remote": false },
+    { "label": "Boston, MA",        "value": "Boston",            "country": "USA",       "remote": false },
+    { "label": "Chicago, IL",       "value": "Chicago",           "country": "USA",       "remote": false },
+    { "label": "Los Angeles, CA",   "value": "Los Angeles",       "country": "USA",       "remote": false },
+    { "label": "New York City, NY", "value": "New York City",     "country": "USA",       "remote": false },
+    { "label": "USA (any)",         "value": "United States",     "country": "USA",       "remote": false },
+    { "label": "Remote (USA)",      "value": "Remote US",         "country": "USA",       "remote": true  },
+
+    { "label": "Remote (anywhere)", "value": "Remote",            "country": "Remote",    "remote": true  },
+
+    { "label": "London, UK",        "value": "London",            "country": "UK",        "remote": false },
+    { "label": "UK (any)",          "value": "United Kingdom",    "country": "UK",        "remote": false },
+
+    { "label": "Berlin, Germany",   "value": "Berlin",            "country": "Germany",   "remote": false },
+    { "label": "Munich, Germany",   "value": "Munich",            "country": "Germany",   "remote": false },
+    { "label": "Germany (any)",     "value": "Germany",           "country": "Germany",   "remote": false },
+
+    { "label": "Singapore",         "value": "Singapore",         "country": "Singapore", "remote": false },
+
+    { "label": "Tokyo, Japan",      "value": "Tokyo",             "country": "Japan",     "remote": false },
+    { "label": "Japan (any)",       "value": "Japan",             "country": "Japan",     "remote": false }
+  ],
+  "exclude_suggestions": [
+    { "label": "USA (any)",         "value": "United States",     "country": "USA"  },
+    { "label": "Remote (USA)",      "value": "Remote US",         "country": "USA"  },
+    { "label": "China",             "value": "China",             "country": "China"},
+    { "label": "India",             "value": "India",             "country": "India"}
+  ]
+}

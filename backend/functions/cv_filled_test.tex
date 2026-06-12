@@ -1,0 +1,153 @@
+\documentclass{resume}
+\usepackage[left=0.75in,top=0.2in,right=0.75in,bottom=0.2in]{geometry}
+\usepackage{hyperref, fontawesome5}
+\renewcommand{\familydefault}{\rmdefault}
+
+\hypersetup{colorlinks=true,linkcolor=black,urlcolor=black}
+
+\makeatletter
+\renewcommand{\printname}{
+  \begingroup
+    \hfil{\namesize\bf \@name}\hfil
+    \nameskip\break
+  \endgroup
+}
+\makeatother
+
+%% \tagged{id}{text} bakes a named PDF anchor
+\newcommand{\tagged}[2]{\hypertarget{#1}{#2}}
+
+\name{\tagged{contact_name}{Pranjwal S.}}
+\address{
+{\fontsize{9}{11}\selectfont
+\tagged{contact_phone}{438-773-4010} \hspace{0.8mm} $\vert$ \hspace{0.8mm}
+\underline{\href{mailto:singhpranjwal@gmail.com}{\tagged{contact_email}{singhpranjwal@gmail.com}}} \hspace{0.8mm} $\vert$ \hspace{0.8mm}
+\underline{\href{https://www.linkedin.com/in/pranjwal-s-01979b242/}{\tagged{contact_linkedin}{www.linkedin.com/in/pranjwal-s-01979b242}}} \hspace{0.8mm} $\vert$ \hspace{0.8mm}
+\underline{\href{https://github.com/PranjwalS}{\tagged{contact_github}{github.com/PranjwalS}}} \hspace{0.8mm} $\vert$ \hspace{0.8mm}
+\underline{\href{https://pranjwal-singh.vercel.app}{\tagged{contact_portfolio}{pranjwal-singh.vercel.app}}}
+}}
+
+\begin{document}
+
+%% ── Education ────────────────────────────────────────────────────────────────
+\begin{rSection}{Education}
+
+{\fontsize{11}{15}\bf \tagged{5c6339ca_school}{University of Waterloo}} \hfill {\tagged{5c6339ca_location}{}} \\
+{\fontsize{10}{12} \tagged{5c6339ca_degree}{Bachelor of Computer Science Honours}} \hfill {\small \tagged{5c6339ca_date}{}} \\
+{\fontsize{9}{12}\selectfont \tagged{5c6339ca_field}{Digital Hardware Specialization}}
+
+\end{rSection}
+
+%% ── Experience ───────────────────────────────────────────────────────────────
+\begin{rSection}{Experience}
+
+\begin{rSubsection}
+  {\tagged{427cf710_company}{Cadets, IT Development Team, Dept. of National Defence}}
+  {\small \tagged{427cf710_date}{June 2025 - August 2025}}
+  {\tagged{427cf710_title}{Software Developer Intern}}
+  {\textit{\tagged{427cf710_location}{}}}
+{\fontsize{10}{12}\selectfont
+\begin{itemize}
+  \itemsep -0.5em
+
+  \item \tagged{experience_427cf710_b1}{Designed and implemented Power Apps solutions for cadet asset management, integrating Microsoft Dataverse with SQL Server to streamline internal data workflows and improve reporting accuracy.}
+
+  \item \tagged{experience_427cf710_b2}{Delivered new functional modules for a nationwide Vue.js web application serving over 10,000 staff, creating responsive UI components and dynamic dashboards that enhanced end‑user experience and facilitated real‑time operational reporting.}
+
+  \item \tagged{experience_427cf710_b3}{Extended the existing .NET (Framework 4.0) backend by adding new data entities, building SignalR hubs for real‑time updates, and developing RESTful Web API endpoints that enabled automated asset tracking, reporting integration, and workflow automation across the organization.}
+
+\end{itemize}
+}
+\end{rSubsection}
+\vspace{-3mm}
+
+\begin{rSubsection}
+  {\tagged{950b16f0_company}{Ericsson}}
+  {\small \tagged{950b16f0_date}{June 2024 - August 2024}}
+  {\tagged{950b16f0_title}{Digital Transformation and Software Testing Intern}}
+  {\textit{\tagged{950b16f0_location}{}}}
+{\fontsize{10}{12}\selectfont
+\begin{itemize}
+  \itemsep -0.5em
+
+  \item \tagged{experience_950b16f0_b1}{Managed and troubleshooted continuous integration pipelines with Jenkins and Kubernetes, diagnosing build and deployment failures, inspecting pod statuses, and reviewing logs to ensure reliable delivery of internal services.}
+
+  \item \tagged{experience_950b16f0_b2}{Developed and maintained Grafana dashboards for KPI and performance monitoring, supported automated software testing workflows, and generated operational reports that informed infrastructure reliability and reporting improvements.}
+
+\end{itemize}
+}
+\end{rSubsection}
+\vspace{-3mm}
+
+\begin{rSubsection}
+  {\tagged{0bf9341c_company}{Edbridges Inc. • Askly.today}}
+  {\small \tagged{0bf9341c_date}{September 2025 - April 2029}}
+  {\tagged{0bf9341c_title}{Software Engineer Intern}}
+  {\textit{\tagged{0bf9341c_location}{}}}
+{\fontsize{10}{12}\selectfont
+\begin{itemize}
+  \itemsep -0.5em
+
+  \item \tagged{experience_0bf9341c_b1}{Engineered and optimized Retrieval‑Augmented Generation (RAG) pipelines and prompt‑engineering workflows on an AI‑driven educational platform using Python, MongoDB, and Pinecone Vector DB, improving LLM response quality and supporting internal data integration.}
+
+  \item \tagged{experience_0bf9341c_b2}{Developed backend LLM workflow services with LangChain and OpenAI API, creating internal QA testing and model evaluation tools that automated validation processes and facilitated seamless deployment within CI/CD pipelines.}
+
+\end{itemize}
+}
+\end{rSubsection}
+\vspace{-3mm}
+
+\end{rSection}
+
+%% ── Skills ───────────────────────────────────────────────────────────────────
+\vspace{-2mm}
+\begin{rSection}{Skills}
+{\fontsize{9.5}{13}\selectfont
+\begin{tabular}{ @{} >{\bfseries}l @{\hspace{4ex}} p{0.69\textwidth} }
+
+\tagged{skill_0_label}{Skills} & \tagged{skill_0_value}{Python, TypeScript, C, C++, SQL, Bash, React, LangChain, React Native, Vue.js, FastAPI, Flask, Celery, Jetpack Compose, Git, GitHub, Docker, Jenkins, Linux, Supabase, Vercel, Render, Android Studio, Unity, Azure (DevOps, Blob, App Service), Power Platform, SQLAlchemy, PostgreSQL} \\
+
+\end{tabular}
+}
+\end{rSection}
+
+%% ── Projects ─────────────────────────────────────────────────────────────────
+\vspace{-2mm}
+\begin{rSection}{Projects}
+\vspace{-1mm}
+
+\fontsize{10}{12}\begin{rSubsection}
+  {\tagged{21bab9b8_name}{Job Aggregator, Tracker & Career Platform - JobScout}}{}{}{}
+{\fontsize{9}{12}\selectfont
+\begin{itemize}
+  \renewcommand{\labelitemi}{\scriptsize\textbullet}
+  \setlength{\itemsep}{-0.3em}
+
+  \item \tagged{proj_21bab9b8_b1}{Developed a full‑stack career platform using FastAPI, PostgreSQL, and Redis, implementing cron‑scheduled job board scrapers, LLM‑based scoring, and automated cover‑letter/CV generation via Celery pipelines, delivering end‑to‑end workflow automation and email alert reporting for high‑match opportunities.}
+
+  \item \tagged{proj_21bab9b8_b2}{Created a Chrome extension for form autofill and prototyped an LLM‑driven Playwright bot that automates job applications, integrating with backend services to streamline repetitive tasks and generate actionable reports.}
+
+  \\ \textbf{Tech Stack:} \textit{\tagged{21bab9b8_stack}{}}
+\end{itemize}}
+\end{rSubsection}
+\vspace{-2mm}
+
+\fontsize{10}{12}\begin{rSubsection}
+  {\tagged{5c7fc21f_name}{Agentic AI Coding Assistant - EnOSym}}{}{}{}
+{\fontsize{9}{12}\selectfont
+\begin{itemize}
+  \renewcommand{\labelitemi}{\scriptsize\textbullet}
+  \setlength{\itemsep}{-0.3em}
+
+  \item \tagged{proj_5c7fc21f_b1}{Designed a locally‑hosted agentic coding assistant leveraging Python, LangChain, and ChromaDB, with voice I/O via Whisper and Coqui TTS, and SQLite‑backed RAG over codebases, orchestrating LLM toolchains for automated code retrieval, generation, and execution.}
+
+  \item \tagged{proj_5c7fc21f_b2}{Built an isolated sandbox environment with Playwright integration for iterative code testing and created a background agent that continuously scans repositories for improvement suggestions, providing automated reporting and workflow enhancements for developers.}
+
+  \\ \textbf{Tech Stack:} \textit{\tagged{5c7fc21f_stack}{}}
+\end{itemize}}
+\end{rSubsection}
+\vspace{-2mm}
+
+\end{rSection}
+
+\end{document}

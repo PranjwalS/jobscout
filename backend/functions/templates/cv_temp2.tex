@@ -1,0 +1,107 @@
+
+\documentclass[10pt]{article}
+\usepackage[margin=0in, noheadfoot]{geometry}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage[most]{tcolorbox}
+
+\renewcommand{\familydefault}{\rmdefault}
+\pagestyle{empty}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0pt}
+
+\hypersetup{colorlinks=true,linkcolor=black,urlcolor=black}
+
+\definecolor{sidebarcolor}{RGB}{235,235,235}
+\definecolor{headercolor}{RGB}{60,60,60}
+
+\newcommand{\cvsection}[1]{%
+  \vspace{7pt}%
+  {\large\bf #1}%
+  \vspace{2pt}%
+  \hrule%
+  \vspace{5pt}%
+}
+
+\newcommand{\tagged}[2]{\hypertarget{#1}{#2}}
+
+\begin{document}
+\begin{tcolorbox}[
+  enhanced,
+  sidebyside,
+  sidebyside align=top,
+  sidebyside gap=0mm,
+  lefthand ratio=0.30,
+  colback=sidebarcolor,
+  colbacklower=white,
+  colframe=white,
+  segmentation style={solid, draw=gray, line width=0.4pt},
+  boxrule=0pt,
+  left=6pt, right=6pt, top=0pt, bottom=0pt,
+  lower separated=false,
+  height fill
+]
+
+%% ── LEFT COLUMN ──────────────────────────────────────────────────────────────
+
+\begin{tcolorbox}[
+  enhanced,
+  colback=headercolor,
+  colframe=headercolor,
+  boxrule=0pt,
+  left=4pt, right=4pt, top=6pt, bottom=6pt,
+  sharp corners
+]
+  {\LARGE\bf\color{white}\centering \tagged{contact_name}{<<contact_name>>}\par}
+\end{tcolorbox}
+
+\cvsection{Contact}
+{\fontsize{8.5}{12}\selectfont
+\tagged{contact_phone}{<<contact_phone>>} \\[2pt]
+\underline{\href{mailto:<<contact_email_raw>>}{\tagged{contact_email}{<<contact_email>>}}} \\[2pt]
+\underline{\href{<<contact_linkedin_url>>}{\tagged{contact_linkedin}{<<contact_linkedin>>}}} \\[2pt]
+\underline{\href{<<contact_github_url>>}{\tagged{contact_github}{<<contact_github>>}}} \\[2pt]
+\underline{\href{<<contact_portfolio_url>>}{\tagged{contact_portfolio}{<<contact_portfolio>>}}}
+}
+
+\cvsection{Education}
+%%FOR_EACH edu IN education%%
+{\fontsize{9.5}{13}\bf \tagged{<<edu.id>>_school}{<<edu.school>>}} \\[2pt]
+{\fontsize{8.5}{11}\selectfont \tagged{<<edu.id>>_degree}{<<edu.degree>>}} \\[2pt]
+{\fontsize{8}{10}\selectfont \tagged{<<edu.id>>_field}{<<edu.field>>}} \\[2pt]
+{\fontsize{8}{10}\selectfont \tagged{<<edu.id>>_date}{<<edu.date>>}}
+\vspace{5pt}
+%%END_FOR%%
+
+\cvsection{Skills}
+{\fontsize{8}{12}\selectfont
+%%FOR_EACH row IN skills%%
+{\bf \tagged{<<row.id>>_label}{<<row.label>>}} \\[1pt]
+\tagged{<<row.id>>_value}{<<row.value>>}
+\vspace{5pt}
+%%END_FOR%%
+}
+
+\tcblower
+
+%% ── RIGHT COLUMN ─────────────────────────────────────────────────────────────
+
+\vspace{8pt}
+\cvsection{Experience}
+%%FOR_EACH exp IN experiences%%
+{\fontsize{10}{13}\bf \tagged{<<exp.id>>_company}{<<exp.company>>}} \hfill {\fontsize{8.5}{11}\selectfont \tagged{<<exp.id>>_date}{<<exp.date>>}} \\[-1pt]
+{\fontsize{9}{12}\selectfont \tagged{<<exp.id>>_title}{<<exp.title>>}} \hfill {\fontsize{8.5}{11}\selectfont\textit{\tagged{<<exp.id>>_location}{<<exp.location>>}}}
+\vspace{1pt}
+{\fontsize{8.5}{12}\selectfont
+\begin{itemize}[leftmargin=1.2em, noitemsep, topsep=1pt, parsep=0pt]
+%%FOR_EACH bullet IN bullets%%
+  \item \tagged{<<bullet.id>>}{<<bullet.value>>}
+%%END_FOR%%
+\end{itemize}
+}
+\vspace{5pt}
+%%END_FOR%%
+
+\end{tcolorbox}
+\end{document}

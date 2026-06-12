@@ -1,0 +1,10 @@
+more pseudo code, just fetches info from careertwin, and has pre written set of solid prompts as well as pdf generation templates to work along the llm outputs (latex compiler)
+basically just generates custom cv and coverletter for each job after scoring thresholds met;
+1. scaffold all info
+2. provide to llm with proper prompt and constraints
+3. plug outputs into schemas
+
+....
+At runtime, when a job is selected on frontend, and user request to preview cv or coverletter
+1. fetch outputs from schemas and respectively generate pdfs based off latex templates or smth
+2. allow on page text editing as well as a regenerate button

@@ -1,0 +1,1 @@
+Cover letter → plain text storage + contentEditable frontend + ReportLab PDF export. Simple, fast, works.

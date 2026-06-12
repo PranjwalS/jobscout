@@ -1,0 +1,95 @@
+\documentclass{resume}
+\usepackage[left=0.75in,top=0.2in,right=0.75in,bottom=0.2in]{geometry}
+\usepackage{hyperref, fontawesome5}
+\renewcommand{\familydefault}{\rmdefault}
+
+\hypersetup{colorlinks=true,linkcolor=black,urlcolor=black}
+
+\makeatletter
+\renewcommand{\printname}{
+  \begingroup
+    \hfil{\namesize\bf \@name}\hfil
+    \nameskip\break
+  \endgroup
+}
+\makeatother
+
+%% \tagged{id}{text} bakes a named PDF anchor
+\newcommand{\tagged}[2]{\hypertarget{#1}{#2}}
+
+\name{\tagged{contact_name}{<<contact_name>>}}
+\address{
+{\fontsize{9}{11}\selectfont
+\tagged{contact_phone}{<<contact_phone>>} \hspace{0.8mm} $\vert$ \hspace{0.8mm}
+\underline{\href{mailto:<<contact_email_raw>>}{\tagged{contact_email}{<<contact_email>>}}} \hspace{0.8mm} $\vert$ \hspace{0.8mm}
+\underline{\href{<<contact_linkedin_url>>}{\tagged{contact_linkedin}{<<contact_linkedin>>}}} \hspace{0.8mm} $\vert$ \hspace{0.8mm}
+\underline{\href{<<contact_github_url>>}{\tagged{contact_github}{<<contact_github>>}}} \hspace{0.8mm} $\vert$ \hspace{0.8mm}
+\underline{\href{<<contact_portfolio_url>>}{\tagged{contact_portfolio}{<<contact_portfolio>>}}}
+}}
+
+\begin{document}
+
+%% ── Education ────────────────────────────────────────────────────────────────
+\begin{rSection}{Education}
+%%FOR_EACH edu IN education%%
+{\fontsize{11}{15}\bf \tagged{<<edu.id>>_school}{<<edu.school>>}} \hfill {\tagged{<<edu.id>>_location}{<<edu.location>>}} \\
+{\fontsize{10}{12} \tagged{<<edu.id>>_degree}{<<edu.degree>>}} \hfill {\small \tagged{<<edu.id>>_date}{<<edu.date>>}} \\
+{\fontsize{9}{12}\selectfont \tagged{<<edu.id>>_field}{<<edu.field>>}}
+%%END_FOR%%
+\end{rSection}
+
+%% ── Experience ───────────────────────────────────────────────────────────────
+\begin{rSection}{Experience}
+%%FOR_EACH exp IN experiences%%
+\begin{rSubsection}
+  {\tagged{<<exp.id>>_company}{<<exp.company>>}}
+  {\small \tagged{<<exp.id>>_date}{<<exp.date>>}}
+  {\tagged{<<exp.id>>_title}{<<exp.title>>}}
+  {\textit{\tagged{<<exp.id>>_location}{<<exp.location>>}}}
+{\fontsize{10}{12}\selectfont
+\begin{itemize}
+  \itemsep -0.5em
+%%FOR_EACH bullet IN bullets%%
+  \item \tagged{<<bullet.id>>}{<<bullet.value>>}
+%%END_FOR%%
+\end{itemize}
+}
+\end{rSubsection}
+\vspace{-3mm}
+%%END_FOR%%
+\end{rSection}
+
+%% ── Skills ───────────────────────────────────────────────────────────────────
+\vspace{-2mm}
+\begin{rSection}{Skills}
+{\fontsize{9.5}{13}\selectfont
+\begin{tabular}{ @{} >{\bfseries}l @{\hspace{4ex}} p{0.69\textwidth} }
+%%FOR_EACH row IN skills%%
+\tagged{<<row.id>>_label}{<<row.label>>} & \tagged{<<row.id>>_value}{<<row.value>>} \\
+%%END_FOR%%
+\end{tabular}
+}
+\end{rSection}
+
+%% ── Projects ─────────────────────────────────────────────────────────────────
+\vspace{-2mm}
+\begin{rSection}{Projects}
+\vspace{-1mm}
+%%FOR_EACH proj IN projects%%
+\fontsize{10}{12}\begin{rSubsection}
+  {\tagged{<<proj.id>>_name}{<<proj.name>>}}{}{}{}
+{\fontsize{9}{12}\selectfont
+\begin{itemize}
+  \renewcommand{\labelitemi}{\scriptsize\textbullet}
+  \setlength{\itemsep}{-0.3em}
+%%FOR_EACH bullet IN bullets%%
+  \item \tagged{<<bullet.id>>}{<<bullet.value>>}
+%%END_FOR%%
+  \\ \textbf{Tech Stack:} \textit{\tagged{<<proj.id>>_stack}{<<proj.stack>>}}
+\end{itemize}}
+\end{rSubsection}
+\vspace{-2mm}
+%%END_FOR%%
+\end{rSection}
+
+\end{document}

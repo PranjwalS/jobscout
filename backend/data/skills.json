@@ -1,0 +1,36 @@
+{
+  "Software Engineering": {
+    "languages": ["Python", "JavaScript", "TypeScript", "Java", "C", "C++", "C#", "Go", "Rust", "Ruby", "PHP", "Scala", "Bash"],
+    "frontend": ["React", "Vue", "Angular", "Next.js", "Svelte", "HTML", "CSS", "Tailwind", "Redux", "GraphQL", "Three.js", "D3.js"],
+    "backend": ["Node.js", "FastAPI", "Django", "Flask", "Spring Boot", "Express", "Rails", "gRPC", "REST", "WebSockets", "Celery", "Kafka"],
+    "databases": ["PostgreSQL", "MySQL", "MongoDB", "Redis", "SQLite", "Supabase", "Firebase", "Elasticsearch", "DynamoDB"]
+  },
+  "Data & AI": {
+    "ml_frameworks": ["PyTorch", "TensorFlow", "scikit-learn", "JAX", "ONNX", "XGBoost", "LightGBM"],
+    "data_tools": ["Pandas", "NumPy", "Spark", "Airflow", "dbt", "BigQuery", "Snowflake", "ClickHouse"],
+    "ai_llm": ["LangChain", "Hugging Face", "OpenCV", "NLTK", "spaCy", "MLflow", "Ray"],
+    "languages": ["Python", "R", "SQL", "Scala"]
+  },
+  "Infrastructure & Cloud": {
+    "cloud": ["AWS", "GCP", "Azure", "Terraform", "Ansible"],
+    "devops": ["Docker", "Kubernetes", "Jenkins", "GitHub Actions", "CircleCI", "ArgoCD"],
+    "monitoring": ["Grafana", "Prometheus", "Datadog"],
+    "systems": ["Linux", "Nginx", "Bash"]
+  },
+  "Engineering": {
+    "hardware": ["VHDL", "Verilog", "FPGA", "PCB Design", "Altium", "KiCad"],
+    "embedded": ["C", "C++", "RTOS", "ARM", "Arduino", "Raspberry Pi", "FreeRTOS"],
+    "mechanical": ["SolidWorks", "AutoCAD", "ANSYS", "MATLAB", "Simulink"],
+    "electrical": ["MATLAB", "Simulink", "LTspice", "LabVIEW", "PLC"]
+  },
+  "Mobile": {
+    "frameworks": ["React Native", "Flutter", "SwiftUI", "Jetpack Compose", "Expo"],
+    "languages": ["Swift", "Kotlin", "Dart"],
+    "tools": ["Xcode", "Android Studio", "Firebase"]
+  },
+  "Other": {
+    "tools": ["Git", "GitHub", "Jira", "Figma", "Postman", "Docker"],
+    "testing": ["Jest", "Cypress", "Pytest", "Selenium", "Playwright"],
+    "languages": ["Python", "JavaScript", "TypeScript"]
+  }
+}
