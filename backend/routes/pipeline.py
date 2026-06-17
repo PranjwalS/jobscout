@@ -1,0 +1,13 @@
+# automated elements that will run async as in scoring, coverletter, cv gen, email on relevant jobs and other things later as in auto apply bot, etc that basically work async on every dashboard separately
+
+# celery
+
+# queue
+
+# score
+
+
+# > threshold ; cv gen
+# > threshold + 5; cl gen
+
+...
