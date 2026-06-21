@@ -547,9 +547,22 @@ def update_user_job_status(user_job_id: str, new_status: str, current_user=Depen
 
 
 ### custom cv work, adds to cv_text in user_jobs
-@app.get("/custom_cv/get")
-def get_custom_cv(job_id = ..., current_user = Depends(get_current_user)):
-    pass
+#
+# cv_json shape (full object the frontend sends back on PUT /custom_cv/edit):
+# {
+#   "experience": [{"id": "...", "title": "...", "company": "...", "date": "...",
+#                    "bullets": [{"id": "...", "value": "..."}, ...]}, ...],
+#   "education":  [{"id": "...", "school": "...", "date": "...", "field": "..."}, ...],
+#   "projects":   [{"id": "...", "name": "...",
+#                    "bullets": [{"id": "...", "value": "..."}, ...]}, ...],
+#   "skills":     [{"id": "skill_0", "label": "Languages", "value": "..."}, ...]
+# }
+# ids are stamped by stamp_cv_ids() at generate time, kept stable through edits.
+# PUT sends the full cv_json back, not a diff.
+#
+# TODO: neither generate nor edit actually compiles a PDF right now — both just
+# read/write cv_json. fill_template() exists and is ready but nothing calls it
+# yet. Setup: compile on generate and compile on every edit. but first make the supabase storage upload (custom_cvs) -> save pdf url on user_jobs.
 
 @app.post("/custom_cv/generate")
 def cv_generator(job_id: str, dashboard_config_id: str, current_user=Depends(get_current_user)):
@@ -572,22 +585,80 @@ def cv_generator(job_id: str, dashboard_config_id: str, current_user=Depends(get
     return {"status": "ok", "user_job_id": user_job["id"], "cv_text": stamped}
 
 
+@app.get("/custom_cv/get")
+def get_custom_cv(job_id: str, dashboard_config_id: str, current_user=Depends(get_current_user)):
+    user_job = supabase_admin.table("user_jobs") \
+        .select("*") \
+        .eq("user_id", current_user["user_id"]) \
+        .eq("job_id", job_id) \
+        .eq("dashboard_config_id", dashboard_config_id) \
+        .single().execute().data
+ 
+    return {"status": "ok", "user_job_id": user_job["id"], "cv_text": user_job["cv_json"]}
+ 
+ 
 @app.put("/custom_cv/edit")
-def cv_edit(job_id = ..., current_user = Depends(get_current_user)):
-    pass
-    # CV (later) → LaTeX template, user edits visually via a structured form not raw LaTeX, recompile on server with pdflatex
-
+def cv_edit(job_id: str, dashboard_config_id: str, cv_json: dict, current_user=Depends(get_current_user)):
+    user_job = supabase_admin.table("user_jobs") \
+        .select("*") \
+        .eq("user_id", current_user["user_id"]) \
+        .eq("job_id", job_id) \
+        .eq("dashboard_config_id", dashboard_config_id) \
+        .single().execute().data
+ 
+    supabase_admin.table("user_jobs").update({
+        "cv_json": cv_json
+    }).eq("id", user_job["id"]).execute()
+ 
+    return {"status": "ok", "user_job_id": user_job["id"], "cv_text": cv_json}
+ 
 
 ### custom coverletter work, depends on cv_text
 ###### SPLIT NEW_JOB_ADD INTO -> JOB_UPLOADER && COVERLETTER_GENERATOR(so its callable by scraper that naturally parses and uploads jobs, but first calls CV_GENERATOR)
 @app.post("/coverletter/new_cl")
 async def cl_generator(job_id: str, dashboard_config_id: str, current_user=Depends(get_current_user)):
+    user_job = supabase_admin.table("user_jobs") \
+        .select("*") \
+        .eq("user_id", current_user["user_id"]) \
+        .eq("job_id", job_id) \
+        .eq("dashboard_config_id", dashboard_config_id) \
+        .single().execute().data
+        
+    cv_json = supabase_admin.table("user_jobs").select("*").eq("id", user_job["id"]).single.execute().data
+    if cv_json:
+        ...
+    else:           
+        ...
+
     job_info = supabase_admin.table("jobs").select("*").eq("id", job_id).single.execute().data
     job_data = {}
     sections = ["title", "company", "location", "description", "requirements", "skills", "salary", "duration", "fields"]
     for section in sections:
         job_data[section] = job_info[section]
     
+    
+    ## LATER: instead of passing current_user, we'll filter for relevant experience/projects/etc to make cv_text and then pass that instead for more relevant coverletter gen as well as for new cv PDF generation
+    coverletter_text = cover_letter_generator(json_output, current_user)    
+    path = f"{current_user['user_id']}/coverletter_{job_id}.pdf"
+    html_data = get_cover_letter_html(
+        cover_letter_text=coverletter_text,
+        candidate_name=current_user.get("display_name", ""),
+        candidate_email=current_user.get("email", ""),
+        candidate_phone=current_user.get("phone", ""),
+        candidate_location=current_user.get("location", ""),
+        candidate_links=current_user.get("links", []),
+    )
+    pdf_bytes = html_to_pdf(html_data)
+
+    bucket = supabase_admin.storage.from_("coverletters")
+    bucket.upload(path, pdf_bytes, file_options={
+        "content-type": "application/pdf",
+        "upsert": "true"
+    })
+    time.sleep(1)
+    pdf_url = bucket.get_public_url(path)    
+    
+    cv_text = current_user.get("cv_parsed_text", "")
     
     
     
@@ -618,39 +689,13 @@ async def new_job_add(file: UploadFile = File(...), current_user = Depends(get_c
     
     job_id = job_response.data[0]["id"]
 
-    ## LATER: instead of passing current_user, we'll filter for relevant experience/projects/etc to make cv_text and then pass that instead for more relevant coverletter gen as well as for new cv PDF generation
-    coverletter_text = cover_letter_generator(json_output, current_user)    
-    path = f"{current_user['user_id']}/coverletter_{job_id}.pdf"
-    html_data = get_cover_letter_html(
-        cover_letter_text=coverletter_text,
-        candidate_name=current_user.get("display_name", ""),
-        candidate_email=current_user.get("email", ""),
-        candidate_phone=current_user.get("phone", ""),
-        candidate_location=current_user.get("location", ""),
-        candidate_links=current_user.get("links", []),
-    )
-    pdf_bytes = html_to_pdf(html_data)
-
-    bucket = supabase_admin.storage.from_("coverletters")
-    bucket.upload(path, pdf_bytes, file_options={
-        "content-type": "application/pdf",
-        "upsert": "true"
-    })
-    time.sleep(1)
-    pdf_url = bucket.get_public_url(path)    
-    
-    cv_text = current_user.get("cv_parsed_text", "")
-
     user_job_response = supabase_admin.table("user_jobs").insert({ 
         "user_id": current_user["user_id"],
-        "job_id": job_id,
-        "cv_text": cv_text,
-        "cover_letter_text": coverletter_text,
-        "cover_letter_html": html_data,
-        "cover_letter_pdf_url": pdf_url     
+        "job_id": job_id,  
     }).execute()
     user_job_id = user_job_response.data[0]["id"]
-    return {"status": "ok", "coverletter_url": pdf_url, "job_id": job_id, "user_job_id": user_job_id}
+    
+    return {"status": "ok", "job_id": job_id, "user_job_id": user_job_id}
 
 
 ## basically;
