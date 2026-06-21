@@ -578,9 +578,19 @@ def cv_edit(job_id = ..., current_user = Depends(get_current_user)):
     # CV (later) → LaTeX template, user edits visually via a structured form not raw LaTeX, recompile on server with pdflatex
 
 
-
 ### custom coverletter work, depends on cv_text
 ###### SPLIT NEW_JOB_ADD INTO -> JOB_UPLOADER && COVERLETTER_GENERATOR(so its callable by scraper that naturally parses and uploads jobs, but first calls CV_GENERATOR)
+@app.post("/coverletter/new_cl")
+async def cl_generator(job_id: str, dashboard_config_id: str, current_user=Depends(get_current_user)):
+    job_info = supabase_admin.table("jobs").select("*").eq("id", job_id).single.execute().data
+    job_data = {}
+    sections = ["title", "company", "location", "description", "requirements", "skills", "salary", "duration", "fields"]
+    for section in sections:
+        job_data[section] = job_info[section]
+    
+    
+    
+    
 @app.post("/coverletter/new_job")
 async def new_job_add(file: UploadFile = File(...), current_user = Depends(get_current_user)):
     file_bytes = await file.read()
