@@ -578,6 +578,7 @@ def cv_generator(job_id: str, dashboard_config_id: str, current_user=Depends(get
     selected = cv_selector(job, current_user)
     stamped  = stamp_cv_ids(selected)
 
+    ## make supabase storage
     supabase_admin.table("user_jobs").update({
         "cv_json": stamped
     }).eq("id", user_job["id"]).execute()
