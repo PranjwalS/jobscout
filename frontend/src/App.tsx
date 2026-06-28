@@ -10,6 +10,8 @@ import CareerTwinProfilePage from "./pages/CareerTwinProfilePage";
 import CVPage from "./pages/CVPage";
 import CoverLetterPage from "./pages/CoverLetterPage";
 import NewDashboardPage from "./pages/NewDashboardPage";
+import ConfigsPage from "./pages/ConfigsPage";
+import ConfigDashboardPage from "./pages/ConfigDashboardPage";
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const token = localStorage.getItem("token");
@@ -42,6 +44,8 @@ export default function App() {
           <Route path="products/coverletter" element={<CoverLetterPage />} />
           {/* Wizard lives inside the dashboard layout so sidebar stays visible */}
           <Route path="new" element={<NewDashboardPage />} />
+          <Route path="configs" element={<ConfigsPage />} />           
+          <Route path="configs/:configId" element={<ConfigDashboardPage />} />  
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />
