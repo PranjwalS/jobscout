@@ -485,7 +485,7 @@ async def get_jobs_for_config(
         .select("*, jobs(*)")
         .eq("dashboard_config_id", str(config_id))
         .eq("user_id", user_id)
-        .order("llm_score", desc=True, nulls_first=False)
+        .order("llm_score", desc=True)
         .order("created_at", desc=True)
         .range(offset, offset + limit - 1)
     )
