@@ -557,37 +557,50 @@ async def update_cv(body: BulkUpdateRequest, current_user = Depends(get_current_
 
 ### ── CV endpoints for CUSTOM (per job) ───────────────────────────────────────────────────────────
 
-### custom cv work, adds to cv_text in user_jobs
+# ── Custom CV editing flow ────────────────────────────────────────────────────
 #
-# cv_json shape (full object the frontend sends back on PUT /custom_cv/edit):
-# {
-#   "experience": [{"id": "...", "title": "...", "company": "...", "date": "...",
-#                    "bullets": [{"id": "...", "value": "..."}, ...]}, ...],
-#   "education":  [{"id": "...", "school": "...", "date": "...", "field": "..."}, ...],
-#   "projects":   [{"id": "...", "name": "...",
-#                    "bullets": [{"id": "...", "value": "..."}, ...]}, ...],
-#   "skills":     [{"id": "skill_0", "label": "Languages", "value": "..."}, ...]
-# }
-# ids are stamped by stamp_cv_ids() at generate time, kept stable through edits.
-# PUT sends the full cv_json back, not a diff.
+# cv_json is the single source of truth — never .tex, never raw LaTeX, anywhere.
+#
+# 1. /custom_cv/generate builds an initial cv_json (via cv_selector + stamp_cv_ids)
+#    and saves it on user_jobs. fill_template(cv_json, profile) renders this into
+#    .tex, compile_cv_pdf() compiles that .tex into PDF bytes, which get uploaded
+#    to the custom_cvs bucket and the url saved on user_jobs.
+#
+# 2. Frontend renders cv_json as a structured, inline-editable doc — text fields
+#    per bullet/title/etc, drag-and-drop to reorder or add/remove entries — using
+#    the stable ids stamped onto every entry. It feels like editing a normal doc,
+#    but every field maps 1:1 to a key in cv_json. The frontend never sees or
+#    touches .tex/LaTeX at any point.
+#
+# 3. On save, frontend POSTs back the full modified cv_json (not a diff) to
+#    /custom_cv/edit. Backend re-runs fill_template(cv_json, profile) -> .tex,
+#    recompiles via compile_cv_pdf() -> PDF bytes, re-uploads, updates the url.
+#    Every edit is a full fresh render from structured data — never a patch
+#    against existing .tex.
+#
+# fill_template is therefore the only place LaTeX syntax/labels ever exist;
+# everything before and after it deals exclusively in cv_json.
 #
 # TODO: neither generate nor edit actually compiles a PDF right now — both just
 # read/write cv_json. fill_template() exists and is ready but nothing calls it
 # yet. Setup: compile on generate and compile on every edit. but first make the supabase storage upload (custom_cvs) -> save pdf url on user_jobs.
 
 @app.post("/custom_cv/generate")
-def cv_generator(job_id: str, dashboard_config_id: str, current_user=Depends(get_current_user)):
-    job = supabase_admin.table("jobs").select("*").eq("id", job_id).single().execute().data
-
+def cv_generator(user_job_id: str, current_user=Depends(get_current_user)):
     user_job = supabase_admin.table("user_jobs") \
         .select("*") \
-        .eq("user_id", current_user["user_id"]) \
-        .eq("job_id", job_id) \
-        .eq("dashboard_config_id", dashboard_config_id) \
+        .eq("id", user_job_id) \
         .single().execute().data
+        
+    job = supabase_admin.table("jobs").select("*").eq("id", user_job["job_id"]).single().execute().data
 
-    selected = cv_selector(job, current_user)
-    stamped  = stamp_cv_ids(selected)
+
+    selected: dict = cv_selector(job, current_user)
+    stamped: dict = stamp_cv_ids(selected)
+    
+    
+    
+    
 
     ## make supabase storage
     supabase_admin.table("user_jobs").update({
