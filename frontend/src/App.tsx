@@ -12,6 +12,7 @@ import CoverLetterPage from "./pages/CoverLetterPage";
 import NewDashboardPage from "./pages/NewDashboardPage";
 import ConfigsPage from "./pages/ConfigsPage";
 import ConfigDashboardPage from "./pages/ConfigDashboardPage";
+import JobDetailPage from "./pages/JobDetailPage";
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const token = localStorage.getItem("token");
@@ -46,6 +47,7 @@ export default function App() {
           <Route path="new" element={<NewDashboardPage />} />
           <Route path="configs" element={<ConfigsPage />} />           
           <Route path="configs/:configId" element={<ConfigDashboardPage />} />  
+          <Route path="jobs/:userJobId" element={<JobDetailPage />} /> 
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />

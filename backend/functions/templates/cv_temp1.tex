@@ -18,7 +18,7 @@
 %% \tagged{id}{text} bakes a named PDF anchor — only safe to use INSIDE \begin{document},
 %% never inside \name{}/\address{} since those are stored via \def and expanded later
 %% by resume.cls's \AtBeginDocument hook, which corrupts hyperref's internal state.
-\newcommand{\tagged}[2]{\hypertarget{#1}{#2}}
+\newcommand{\tagged}[2]{\ifx\\#2\\\else\hypertarget{#1}{#2}\fi}
 
 \name{<<contact_name>>}
 \address{
@@ -35,7 +35,7 @@
 %% ── Education ────────────────────────────────────────────────────────────────
 \begin{rSection}{Education}
 %%FOR_EACH edu IN education%%
-{\fontsize{11}{15}\bf \tagged{<<edu.id>>_school}{<<edu.school>>}} \hfill {\tagged{<<edu.id>>_location}{<<edu.location>>}} \\
+{\fontsize{11}{15}\bf \tagged{<<edu.id>>_school}{<<edu.school>>}} \hfill <<edu.location>> \\
 {\fontsize{10}{12} \tagged{<<edu.id>>_degree}{<<edu.degree>>}} \hfill {\small \tagged{<<edu.id>>_date}{<<edu.date>>}} \\
 {\fontsize{9}{12}\selectfont \tagged{<<edu.id>>_field}{<<edu.field>>}}
 %%END_FOR%%
@@ -47,8 +47,8 @@
 \begin{rSubsection}
   {\tagged{<<exp.id>>_company}{<<exp.company>>}}
   {\small \tagged{<<exp.id>>_date}{<<exp.date>>}}
-  {\tagged{<<exp.id>>_title}{<<exp.title>>}}
-  {\textit{\tagged{<<exp.id>>_location}{<<exp.location>>}}}
+  {\tagged{<<exp.id>>_title}{<<exp.title>>}} -- {<<exp.location>>}
+  {}
 {\fontsize{10}{12}\selectfont
 %%FOR_EACH bullet IN bullets%%
   \item \tagged{<<bullet.id>>}{<<bullet.value>>}

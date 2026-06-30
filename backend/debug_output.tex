@@ -18,7 +18,7 @@
 %% \tagged{id}{text} bakes a named PDF anchor — only safe to use INSIDE \begin{document},
 %% never inside \name{}/\address{} since those are stored via \def and expanded later
 %% by resume.cls's \AtBeginDocument hook, which corrupts hyperref's internal state.
-\newcommand{\tagged}[2]{\hypertarget{#1}{#2}}
+\newcommand{\tagged}[2]{\ifx\\#2\\\else\hypertarget{#1}{#2}\fi}
 
 \name{Pranjwal Singh}
 \address{
@@ -35,14 +35,61 @@ pranjwal-singh.vercel.app
 %% ── Education ────────────────────────────────────────────────────────────────
 \begin{rSection}{Education}
 
-{\fontsize{11}{15}\bf \tagged{63d77364_school}{University of Waterloo}} \hfill {\tagged{63d77364_location}{}} \\
-{\fontsize{10}{12} \tagged{63d77364_degree}{Bachelor of Computer Science Honours}} \hfill {\small \tagged{63d77364_date}{April 2029}} \\
-{\fontsize{9}{12}\selectfont \tagged{63d77364_field}{Computer Science}}
+{\fontsize{11}{15}\bf \tagged{f5049cae_school}{University of Waterloo}} \hfill \, \\
+{\fontsize{10}{12} \tagged{f5049cae_degree}{Bachelor of Computer Science Honours}} \hfill {\small \tagged{f5049cae_date}{April 2029}} \\
+{\fontsize{9}{12}\selectfont \tagged{f5049cae_field}{Computer Science}}
 
 \end{rSection}
 
 %% ── Experience ───────────────────────────────────────────────────────────────
 \begin{rSection}{Experience}
+
+\begin{rSubsection}
+  {\tagged{6ab8ec91_company}{Ericsson}}
+  {\small \tagged{6ab8ec91_date}{June 2024 - August 2024}}
+  {\tagged{6ab8ec91_title}{Digital Transformation and Software Testing Intern}} -- {\,}
+  {}
+{\fontsize{10}{12}\selectfont
+
+  \item \tagged{experience_6ab8ec91_b1}{Applied analytical troubleshooting to monitor and debug CI/CD pipelines in Jenkins and Kubernetes, systematically diagnosing build and deployment failures by inspecting pod statuses and log files, and implementing corrective actions that enhanced pipeline reliability for the telecom operations team.}
+
+  \item \tagged{experience_6ab8ec91_b2}{Designed and maintained Grafana dashboards that visualized key performance indicators and system metrics, supporting software testing workflows and producing concise operational reports that informed management decisions and facilitated process improvements across the telecom infrastructure.}
+
+}
+\end{rSubsection}
+\vspace{-3mm}
+
+\begin{rSubsection}
+  {\tagged{79538099_company}{Cadets, IT Development Team}}
+  {\small \tagged{79538099_date}{June 2025 - August 2025}}
+  {\tagged{79538099_title}{Software Developer}} -- {\,}
+  {}
+{\fontsize{10}{12}\selectfont
+
+  \item \tagged{experience_79538099_b1}{Developed Power Apps solutions for cadet asset management, integrating Dataverse and SQL to streamline administrative workflows, and produced user guides and briefing materials that enabled program staff to adopt the system efficiently.}
+
+  \item \tagged{experience_79538099_b2}{Engineered and delivered new pages, UI components, and dynamic dashboards for the core Vue.js application serving over 10,000 staff nationwide, translating technical specifications into clear presentation materials and training documentation to support stakeholder communication.}
+
+  \item \tagged{experience_79538099_b3}{Extended the .NET backend with additional data entities, SignalR hubs, and RESTful APIs for asset tracking and reporting, documenting API specifications and creating briefing packets that facilitated cross-team coordination and informed management of system capabilities.}
+
+}
+\end{rSubsection}
+\vspace{-3mm}
+
+\begin{rSubsection}
+  {\tagged{93f69dfc_company}{Edbridges Inc. · Askly.today}}
+  {\small \tagged{93f69dfc_date}{June 2026 - August 2026}}
+  {\tagged{93f69dfc_title}{Software Engineer Intern}} -- {\,}
+  {}
+{\fontsize{10}{12}\selectfont
+
+  \item \tagged{experience_93f69dfc_b1}{Constructed and refined Retrieval-Augmented Generation (RAG) pipelines and prompt-engineering workflows on an AI-driven educational platform, leveraging Python, MongoDB, and Pinecone Vector DB to systematically improve LLM output quality, and documented the methodology for internal stakeholders.}
+
+  \item \tagged{experience_93f69dfc_b2}{Developed backend LLM workflow systems with LangChain and OpenAI API, creating internal tooling for QA testing and model evaluation that provided structured performance reports and actionable recommendations to guide product decisions.}
+
+}
+\end{rSubsection}
+\vspace{-3mm}
 
 \end{rSection}
 
@@ -62,27 +109,27 @@ pranjwal-singh.vercel.app
 \vspace{-1mm}
 
 \fontsize{10}{12}\begin{rSubsection}
-  {\tagged{8dd056f0_name}{Job Aggregator, Tracker \& Career Platform - JobScout}}{}{}{}
+  {\tagged{2387c129_name}{Job Aggregator, Tracker \& Career Platform - JobScout}}{}{}{}
 {\fontsize{9}{12}\selectfont
 
-  \item \tagged{proj_8dd056f0_b1}{Designed and delivered a comprehensive career-platform briefing system where users maintain profiles and generate job-search dashboards; each dashboard runs scheduled scrapers across multiple job boards, applies LLM-driven scoring, and automatically produces customized cover letters, CVs, and pre-interview preparation packets (Q\&A and mock interview simulations) via Celery-Redis pipelines, while analytical email alerts surface high-scoring matches for managerial review.}
+  \item \tagged{proj_2387c129_b1}{Engineered a full-stack career platform enabling users to maintain profiles and generate job-search dashboards; implemented cron-scheduled scrapers, LLM-powered scoring, and automated generation of custom cover letters, CVs, and pre-interview briefing packets via Celery-Redis pipelines, delivering timely email alerts that supported strategic job-application communication.}
 
-  \item \tagged{proj_8dd056f0_b2}{Developed a Chrome extension and an evolving LLM-powered Playwright automation bot to streamline application workflows, providing form-autofill capabilities and automated submission processes that enhance operational efficiency and support continuous process improvement for end-users.}
+  \item \tagged{proj_2387c129_b2}{Created a Chrome extension for form autofill and prototyped an LLM-driven Playwright bot that automates application submissions, documenting the workflow and producing briefing guides for end-users to streamline the application process.}
 
-  \item \textbf{Tech Stack:} \textit{\tagged{8dd056f0_stack}{}}
+  \item \textbf{Tech Stack:} \textit{\tagged{2387c129_stack}{\,}}
 }
 \end{rSubsection}
 \vspace{-2mm}
 
 \fontsize{10}{12}\begin{rSubsection}
-  {\tagged{fa030404_name}{Agentic AI Coding Assistant - EnOSym}}{}{}{}
+  {\tagged{07cea7ce_name}{Agentic AI Coding Assistant - EnOSym}}{}{}{}
 {\fontsize{9}{12}\selectfont
 
-  \item \tagged{proj_fa030404_b1}{Engineered a locally hosted, voice-enabled coding assistant that leverages Whisper and Coqui TTS for bidirectional communication, employs Retrieval-Augmented Generation over codebases and conversation history stored in SQLite, and orchestrates LLM tool usage through a LangChain agentic loop to retrieve relevant files, generate code, and execute solutions, thereby delivering analytical insights and actionable recommendations to developers.}
+  \item \tagged{proj_07cea7ce_b1}{Developed a locally-run agentic coding assistant featuring voice I/O (Whisper, Coqui TTS) and Retrieval-Augmented Generation over codebases and conversation history stored in SQLite, employing ChromaDB and a LangChain orchestration loop to retrieve relevant files, generate code, and execute tasks, while producing detailed logs and briefing summaries for developer review.}
 
-  \item \tagged{proj_fa030404_b2}{Constructed an isolated sandbox environment integrated with Playwright for iterative code generation, testing, and browser-based task automation, and implemented an autonomous background agent that continuously scans repositories for improvement opportunities, presenting concise briefing reports that inform stakeholders of suggested enhancements.}
+  \item \tagged{proj_07cea7ce_b2}{Implemented an isolated coding sandbox enabling iterative code generation and testing, integrated with Playwright for browser-based automation, and designed an autonomous background agent that continuously scans repositories for improvement opportunities, delivering actionable recommendations and concise reports to stakeholders.}
 
-  \item \textbf{Tech Stack:} \textit{\tagged{fa030404_stack}{}}
+  \item \textbf{Tech Stack:} \textit{\tagged{07cea7ce_stack}{\,}}
 }
 \end{rSubsection}
 \vspace{-2mm}

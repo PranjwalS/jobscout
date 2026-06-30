@@ -39,7 +39,7 @@ STEP 2 — SELECTION RULES
 PROFILE
 ============================================================
 
-Experiences: {json.dumps(user_profile.get("experience", []))}
+Experiences: {json.dumps(user_profile.get("experiences", []))}
 Projects: {json.dumps(user_profile.get("projects", []))}
 Skills: {user_profile.get("skills", "")}
 Education: {json.dumps(user_profile.get("education", []))}

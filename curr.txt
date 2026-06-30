@@ -25,7 +25,7 @@ now mainly, we on backend;
     X. Write both scoring logics being cv to job desc and job desc to cv 
     X. Write scoring logic/prompts for llm based scoring too
     2. Plan out the automated_elements and start writing code that launches them on all dashboard_configs efficiently, BASICALLY; make the filter + score + cl + cv + llm_score pipeline
-    1. Go write all the backend logic for CV generation, custom from careertwin per job, clearly define the regenerate endpoints (split new_job for coverletter into two proper endpoints), and then frontend for mods
+    X. Go write all the backend logic for CV generation, custom from careertwin per job, clearly define the regenerate endpoints (split new_job for coverletter into two proper endpoints), and then frontend for mods
     3. On user signup, auto-generate a default 'master' dashboard_config for every user as the fallback when no dashboard is specified. Needed for cv and cl gens
 
     back on frontend;

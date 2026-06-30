@@ -542,11 +542,11 @@ export default function ConfigDashboardPage() {
   // ── Context menu ──────────────────────────────────────────────────────────
   function handleContextMenu(e: React.MouseEvent, uj: UserJob) {
     e.preventDefault();
-    setCtxMenu({ x: e.clientX, y: e.clientY, jobId: uj.job_id, userJobId: uj.id });
+    setCtxMenu({ x: e.clientX, y: e.clientY, jobId: uj.id, userJobId: uj.id });
   }
 
-  function openJobTab(jobId: string) {
-    window.open(`/dashboard/jobs/${jobId}`, "_blank", "noopener,noreferrer");
+  function openJobTab(userJobId: string) {
+    window.open(`/dashboard/jobs/${userJobId}`, "_blank", "noopener,noreferrer");
   }
 
   const hasFilters = !!(filters.jobType || filters.minScore || filters.company || filters.field);
@@ -857,7 +857,7 @@ export default function ConfigDashboardPage() {
                             <BookmarkPlus size={13} />
                           </button>
                           <a
-                            href={`/dashboard/jobs/${uj.job_id}`}
+                            href={`/dashboard/jobs/${uj.id}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             onClick={(e) => e.stopPropagation()}

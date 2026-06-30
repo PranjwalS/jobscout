@@ -56,10 +56,9 @@ def _val(field) -> str:
         raw = str(field.get("value", ""))
     else:
         raw = str(field) if field is not None else ""
-    raw = _sanitize_latex_text(raw)   # normalize unicode punctuation first
-    return _escape_latex(raw)          # then escape latex special chars
-
-
+    raw = _sanitize_latex_text(raw)
+    raw = _escape_latex(raw)
+    return raw if raw.strip() else "\\,"
 
 def _short_id(seed: str) -> str:
     return hashlib.md5(seed.encode()).hexdigest()[:8]
