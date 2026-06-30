@@ -13,6 +13,7 @@ import httpx
 from jose import jwt, JWTError
 from pydantic import BaseModel
 from docling.document_converter import DocumentConverter
+from backend.functions.cv_filler import fill_template
 from functions.cv_and_cl_gen import cv_parser, job_parser, cover_letter_generator
 from functions.pdf_generator import generate_cover_letter_pdf, get_cover_letter_html, html_to_pdf
 import uuid
@@ -21,6 +22,7 @@ from routes.creation_dashboard import router as dashboard_router
 from routes.jobs import router as job_router
 from dependencies import supabase_admin, supabase, get_current_user, FRONTEND_ORIGIN, redis_client
 from functions.cv_latex import cv_selector, stamp_cv_ids
+from functions.cv_compiler import compile_cv_pdf, LatexCompileError
 import csv
 
 app = FastAPI()
@@ -598,16 +600,133 @@ def cv_generator(user_job_id: str, current_user=Depends(get_current_user)):
     selected: dict = cv_selector(job, current_user)
     stamped: dict = stamp_cv_ids(selected)
     
+    tex_source = fill_template(stamped, current_user)
+    try:
+        pdf_bytes = compile_cv_pdf(tex_source)
+    except LatexCompileError as e:
+        raise HTTPException(status_code=500, detail=f"CV compile failed: {str(e)}")
+
+    path = f"{current_user['user_id']}/cv_{user_job_id}.pdf"
+    Claude finished the responselets go work on jobscout, i have a chat with you working on the frotnned, and we'll go do some heavy backend stuffWhat's the current state you want to pick up from — is there a specific backend piece you have in mind (scraper, scoring, dashboard wizard, CV/cover letter pipeline), or do you want to first tell me what's broken/next on the list?import json
+import tempfile
+import time
+from typing import Optional
+from pydantic import ValidationError
+from fastapi import FastAPI, Depends, File, HTTPException, UploadFile, status
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.middleware.cors import CORSpastedthis is the main thing we'll work on today, just read it throguhRead through it. Quick map of what I'm seeing, and the rough edges that jump out — tell me which thread you want to pull on first.
+Auth/profile/CV/CareerTwin CRUD endpoints look solid and consistent — same select-mutate-validate-write pattern repeated across education/experience/projects, working as intended.
+The messier territory is the custom CV + cover letter pipeline at the bottom, where your own TODOs are sitting:
+/custom_cv/generate and /custom_cv/edit only touch cv_json — fill_template() exists per your comment but nothing calls it, so there's no actual PDF being compiled or stored for custom CVs yet. That's the explicit gap you flagged.
+/coverletter/new_cl is broken in a few ways: json_output and current_user.get("cv_parsed_text") are referenced but never defined in that function (looks like leftover from a copy-paste of the old combined endpoint), cl_generator ends without persisting anything to user_jobs or returning a response, and there's a typo .single.execute() (missing parens on .single) in two spots that will throw at runtime, not just give wrong data.
+/coverletter/new_job (the PDF-upload job add) and /coverletter/new_cl (the generate-from-tracked-job flow) look like they used to be one endpoint and got split per your comment but the split wasn't finished — new_cl is half-built.
+So the natural backend block today is probably: finish the CV PDF compile-and-store path (wire fill_template, add the custom_cvs storage bucket upload, save URL onto user_jobs), then fix/finish new_cl so it actually generates a cover letter for an existing tracked job end-to-end, consistent with how /coverletter/edit already does the html_to_pdf/storage/update dance.
+Want to start with the CV PDF compile path, or fix new_cl first?teh coverletter get and edit are usable well init, like it can be used however the user pelases, its not dependent on new-job rightRight — get and edit are self-contained, keyed entirely off user_job_id, and don't care how that user_job row came to exist. They just assume:
+
+the user_jobs row already exists (whether created by new_job, new_cl, or the scraper inserting directly into user_jobs/jobs)
+that row has some state to work from — either cover_letter_html already populated, or cover_letter_text to build html from, or (for edit in regenerate mode) the linked jobs row plus current_user is enough to generate from scratch
+
+So functionally yes — once a user_job_id exists, get will render whatever's there or build it on the fly, and edit can regenerate from nothing or take frontend-edited html and re-render to PDF. Neither depends on new_job or new_cl having run successfully first, as long as the row exists and job_id points to a valid job.
+The one soft dependency: if new_cl/new_job never ran and cover_letter_text/cover_letter_html are both null/missing, the first get call will hit get_cover_letter_html(cover_letter_text=user_job["cover_letter_text"], ...) with None — does get_cover_letter_html handle that gracefully, or does it expect a string? That's the one thing worth checking before you call get/edit fully decoupled from a generation step.so i should work on making new_cl initYeah — new_cl is the missing link that actually populates cover_letter_text/cover_letter_html/cover_letter_pdf_url on a user_jobs row for the first time, mirroring what edit's regenerate branch already does. Let's fix it properly rather than patch the typos.
+Looking at what it should do, modeled on edit:
+
+Fetch the user_job row (you have this)
+Fetch the job row — your job_data dict-building loop is fine but unused; cover_letter_generator probably just wants the job dict like edit passes it
+Call cover_letter_generator(job, current_user) — drop the broken json_output/CV-conditional block, it's dead leftover logic that doesn't connect to anything
+Build html via get_cover_letter_html(...) same as edit
+html_to_pdf, upload to coverletters bucket, get public url — identical to edit's tail
+Update user_jobs with cover_letter_text, cover_letter_html, cover_letter_pdf_url
+Return {"status": "ok", "user_job_id": ...}
+
+That's basically copy the bottom two-thirds of edit's regenerate branch into new_cl, minus the html-mode fork since new_cl is always a fresh generation.
+Two things worth deciding before I write it:
+The .single.execute() typo and the dead json_output/cv check at the top — confirmed dropping that whole block, right, not trying to salvage some CV-conditional logic you meant to build there?
+And do you want new_cl to guard against double-generation (e.g. error or just overwrite if cover_letter_text already exists on that user_job), or always overwrite like edit does?ur salvaging this correct?### custom coverletter work, depends on cv_text
+###### SPLIT NEW_JOB_ADD INTO -> JOB_UPLOADER && COVERLETTER_GENERATOR(so its callable by scraper that naturally parses and uploads jobs, but first calls CV_GENERATOR)
+@app.post("/coverletter/new_cl")
+async def cl_generator(job_id: str, dashboard_config_id: str, current_user=Depends(get_current_user)):
+    user_job = supabase_admin.table("user_jobs") \
+        .select("*") \
+        .eq("user_id", current_user["user_id"]) \
+        .eq("job_id", job_id) \
+        .eq("dashboard_config_id", dashboard_config_id) \
+        .single().execute().data
+        
+    cv_json = supabase_admin.table("user_jobs").select("*").eq("id", user_job["id"]).single.execute().data
+    if cv_json:
+        ...
+    else:           
+        ...
+
+    job_info = supabase_admin.table("jobs").select("*").eq("id", job_id).single.execute().data
+    job_data = {}
+    sections = ["title", "company", "location", "description", "requirements", "skills", "salary", "duration", "fields"]
+    for section in sections:
+        job_data[section] = job_info[section]
     
     
+    ## LATER: instead of passing current_user, we'll filter for relevant experience/projects/etc to make cv_text and then pass that instead for more relevant coverletter gen as well as for new cv PDF generation
+    coverletter_text = cover_letter_generator(json_output, current_user)    
+    path = f"{current_user['user_id']}/coverletter_{job_id}.pdf"
+    html_data = get_cover_letter_html(
+        cover_letter_text=coverletter_text,
+        candidate_name=current_user.get("display_name", ""),
+        candidate_email=current_user.get("email", ""),
+        candidate_phone=current_user.get("phone", ""),
+        candidate_location=current_user.get("location", ""),
+        candidate_links=current_user.get("links", []),
+    )
+    pdf_bytes = html_to_pdf(html_data)
+
+    bucket = supabase_admin.storage.from_("coverletters")
+    bucket.upload(path, pdf_bytes, file_options={
+        "content-type": "application/pdf",
+        "upsert": "true"
+    })
+    time.sleep(1)
+    pdf_url = bucket.get_public_url(path)    
     
+    cv_text = current_user.get("cv_parsed_text", "")and yes it should overwrite, thats the point so user can repeatedly call new_cl if dissatisfied and the first new_cl will be called by a backedn pipeline so dwShow moreSalvaging the structure and intent, but the cv_json/if-else block at the top is dead — it fetches user_job again under the name cv_json (doesn't even touch a CV field) and the if/else does nothing on either branch. That's the part to actually cut. The job_info/job_data loop is good intent (matches the pattern in edit where you pass the job dict to cover_letter_generator) but currently unused since the call below uses the undefined json_output instead — going to wire job_data into that call.
+
+
+@app.post("/custom_cv/generate")
+def cv_generator(job_id: str, dashboard_config_id: str, current_user=Depends(get_current_user)):
+    job = supabase_admin.table("jobs").select("*").eq("id", job_id).single().execute().data
+
+    user_job = supabase_admin.table("user_jobs") \
+        .select("*") \
+        .eq("user_id", current_user["user_id"]) \
+        .eq("job_id", job_id) \
+        .eq("dashboard_config_id", dashboard_config_id) \
+        .single().execute().data
+
+    if not user_job:
+        raise HTTPException(404, "user_job not found")
+
+    selected = cv_selector(job, current_user)
+    stamped  = stamp_cv_ids(selected)
+
+    tex_source = fill_template(stamped, current_user)
+    try:
+        pdf_bytes = compile_cv_pdf(tex_source)
+    except LatexCompileError as e:
+        raise HTTPException(status_code=500, detail=f"CV compile failed: {str(e)}")
+
+    path = f"{current_user['user_id']}/cv_{job_id}.pdf"
+    bucket = supabase_admin.storage.from_("custom_cvs")
+    bucket.upload(path, pdf_bytes, file_options={
+        "content-type": "application/pdf",
+        "upsert": "true"
+    })
+    pdf_url = bucket.get_public_url(path)
 
     ## make supabase storage
     supabase_admin.table("user_jobs").update({
-        "cv_json": stamped
-    }).eq("id", user_job["id"]).execute()
+        "cv_json": stamped,
+        "cv_pdf_url": pdf_url,
+    }).eq("id", user_job_id).execute()
 
-    return {"status": "ok", "user_job_id": user_job["id"], "cv_text": stamped}
+    return {"status": "ok", "user_job_id": user_job_id, "cv_text": stamped, "cv_pdf_url": pdf_url}
 
 
 @app.get("/custom_cv/get")
