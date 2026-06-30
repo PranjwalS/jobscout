@@ -75,6 +75,19 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(bearer_
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Could not validate user")
 
 
+def get_owned_user_job(user_job_id: str, current_user=Depends(get_current_user)) -> dict:
+    user_job = supabase_admin.table("user_jobs") \
+        .select("*") \
+        .eq("id", user_job_id) \
+        .single().execute().data
+
+    if not user_job:
+        raise HTTPException(status_code=404, detail="user_job not found")
+    if user_job["user_id"] != current_user["user_id"]:
+        raise HTTPException(status_code=403, detail="Forbidden")
+
+    return user_job
+
 
 ### HAVE TO IMPLEMENT REDIS_CLIENT HERE AND ATTACH WITH MAIN AND DASHBOARD ENDPOINTS PY FILES
 redis_client = None

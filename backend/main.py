@@ -20,7 +20,7 @@ import uuid
 from fastapi.staticfiles import StaticFiles
 from routes.creation_dashboard import router as dashboard_router
 from routes.jobs import router as job_router
-from dependencies import supabase_admin, supabase, get_current_user, FRONTEND_ORIGIN, redis_client
+from dependencies import get_owned_user_job, supabase_admin, supabase, get_current_user, FRONTEND_ORIGIN, redis_client
 from functions.cv_latex import cv_selector, stamp_cv_ids
 from functions.cv_compiler import compile_cv_pdf, LatexCompileError
 import csv
@@ -124,7 +124,6 @@ class DeleteEntryRequest(BaseModel):
     id: str
     
 class EditCoverLetterRequest(BaseModel):
-    user_job_id: str
     mode: str  # "regenerate" or "html"
     content: str | None = None 
  
@@ -584,14 +583,8 @@ async def update_cv(body: BulkUpdateRequest, current_user = Depends(get_current_
 # everything before and after it deals exclusively in cv_json.
 #
 @app.post("/custom_cv/generate")
-def cv_generator(user_job_id: str, current_user=Depends(get_current_user)):
-    user_job = supabase_admin.table("user_jobs") \
-        .select("*") \
-        .eq("id", user_job_id) \
-        .single().execute().data
-        
+def cv_generator(user_job: dict=Depends(get_owned_user_job), current_user=Depends(get_current_user)):
     job = supabase_admin.table("jobs").select("*").eq("id", user_job["job_id"]).single().execute().data
-
 
     selected: dict = cv_selector(job, current_user)
     stamped: dict = stamp_cv_ids(selected)
@@ -602,7 +595,7 @@ def cv_generator(user_job_id: str, current_user=Depends(get_current_user)):
     except LatexCompileError as e:
         raise HTTPException(status_code=500, detail=f"CV compile failed: {str(e)}")
 
-    path = f"{current_user['user_id']}/cv_{user_job_id}.pdf"
+    path = f"{current_user['user_id']}/cv_{user_job['id']}.pdf"
     bucket = supabase_admin.storage.from_("custom_cvs")
     bucket.upload(path, pdf_bytes, file_options={
         "content-type": "application/pdf",
@@ -614,34 +607,18 @@ def cv_generator(user_job_id: str, current_user=Depends(get_current_user)):
     supabase_admin.table("user_jobs").update({
         "cv_json": stamped,
         "cv_pdf_url": pdf_url,
-    }).eq("id", user_job_id).execute()
+    }).eq("id", user_job['id']).execute()
 
-    return {"status": "ok", "user_job_id": user_job_id, "cv_text": stamped, "cv_pdf_url": pdf_url}
+    return {"status": "ok", "user_job_id": user_job['id'], "cv_text": stamped, "cv_pdf_url": pdf_url}
 
 
 @app.get("/custom_cv/get")
-def cv_get(user_job_id: str, current_user=Depends(get_current_user)):
-    user_job = supabase_admin.table("user_jobs") \
-        .select("*") \
-        .eq("id", user_job_id) \
-        .single().execute().data
- 
-    if not user_job:
-        raise HTTPException(404, "user_job not found")
- 
-    return {"status": "ok", "user_job_id": user_job_id, "cv_text": user_job["cv_json"], "cv_pdf_url": user_job["cv_pdf_url"]}
+def cv_get(user_job: dict=Depends(get_owned_user_job), current_user=Depends(get_current_user)): 
+    return {"status": "ok", "user_job_id": user_job['id'], "cv_text": user_job["cv_json"], "cv_pdf_url": user_job["cv_pdf_url"]}
 
  
 @app.put("/custom_cv/edit")
-def cv_edit(user_job_id: str, cv_json: dict, current_user=Depends(get_current_user)):
-    user_job = supabase_admin.table("user_jobs") \
-        .select("*") \
-        .eq("id", user_job_id) \
-        .single().execute().data
- 
-    if not user_job:
-        raise HTTPException(404, "user_job not found")
-
+def cv_edit(cv_json: dict, user_job: dict=Depends(get_owned_user_job), current_user=Depends(get_current_user)):
     stamped = stamp_cv_ids(cv_json)
     
     tex_source = fill_template(stamped, current_user)
@@ -650,7 +627,7 @@ def cv_edit(user_job_id: str, cv_json: dict, current_user=Depends(get_current_us
     except LatexCompileError as e:
         raise HTTPException(status_code=500, detail=f"CV compile failed: {str(e)}")
 
-    path = f"{current_user['user_id']}/cv_{user_job_id}.pdf"
+    path = f"{current_user['user_id']}/cv_{user_job['id']}.pdf"
     bucket = supabase_admin.storage.from_("custom_cvs")
     bucket.upload(path, pdf_bytes, file_options={
         "content-type": "application/pdf",
@@ -662,9 +639,9 @@ def cv_edit(user_job_id: str, cv_json: dict, current_user=Depends(get_current_us
     supabase_admin.table("user_jobs").update({
         "cv_json": stamped,
         "cv_pdf_url": pdf_url,
-    }).eq("id", user_job_id).execute()
+    }).eq("id", user_job['id']).execute()
 
-    return {"status": "ok", "user_job_id": user_job_id, "cv_text": stamped, "cv_pdf_url": pdf_url}
+    return {"status": "ok", "user_job_id":user_job['id'], "cv_text": stamped, "cv_pdf_url": pdf_url}
  
 
 
@@ -673,19 +650,7 @@ def cv_edit(user_job_id: str, cv_json: dict, current_user=Depends(get_current_us
 
 ### custom coverletter work, depends on cv_text
 @app.post("/custom_cl/generate")
-async def cl_generator(user_job_id: str, current_user=Depends(get_current_user)):
-    user_job = supabase_admin.table("user_jobs") \
-        .select("*") \
-        .eq("id", user_job_id) \
-        .single().execute().data
-    
-    if not user_job:
-        raise HTTPException(404, "non existing job for said user")
-
-    if user_job["user_id"] != current_user["user_id"]:
-        raise HTTPException(status_code=403, detail="Forbidden")
- 
-
+async def cl_generator(user_job: dict = Depends(get_owned_user_job), current_user=Depends(get_current_user)):
     job_info = supabase_admin.table("jobs").select("*").eq("id", user_job["job_id"]).single().execute().data
     job_data = {}
     sections = ["title", "company", "location", "description", "requirements", "skills", "salary", "duration", "fields"]
@@ -721,7 +686,7 @@ async def cl_generator(user_job_id: str, current_user=Depends(get_current_user))
         "cover_letter_pdf_url": pdf_url,
     }).eq("id", user_job["id"]).execute()
 
-    return {"status": "ok", "user_job_id": user_job_id, "coverletter_url": pdf_url}    
+    return {"status": "ok", "user_job_id": user_job["id"], "coverletter_url": pdf_url}    
     
     
 
@@ -732,15 +697,7 @@ async def cl_generator(user_job_id: str, current_user=Depends(get_current_user))
 # Sends plain text to PUT /coverletter/edit as content
 # Backend stores plain text → calls build_cover_letter_html → WeasyPrint → PDF bytes → uploads → returns new pdf_url
 @app.get("/custom_cl/get")
-def cl_get(user_job_id: str, current_user=Depends(get_current_user)):
-    user_job = supabase_admin.table("user_jobs").select("*").eq("id", user_job_id).single().execute().data
-    
-    if not user_job:
-        raise HTTPException(404, "non existing job for said user")
-    
-    if user_job["user_id"] != current_user["user_id"]:
-        raise HTTPException(status_code=403, detail="Forbidden")
- 
+def cl_get(user_job: dict = Depends(get_owned_user_job), current_user=Depends(get_current_user)):
     html_data = user_job.get("cover_letter_html") or get_cover_letter_html(
         cover_letter_text=user_job["cover_letter_text"],
         candidate_name=current_user.get("display_name", ""),
@@ -750,21 +707,11 @@ def cl_get(user_job_id: str, current_user=Depends(get_current_user)):
         candidate_links=current_user.get("links", []),
     )
  
-    return {"status": "ok", "html_data": html_data, "coverletter_url": user_job["cover_letter_pdf_url"], "user_job_id": user_job_id }
+    return {"status": "ok", "html_data": html_data, "coverletter_url": user_job["cover_letter_pdf_url"], "user_job_id": user_job["id"] }
         
 
 @app.put("/custom_cl/edit")
-def cl_edit(data: EditCoverLetterRequest, current_user=Depends(get_current_user)):
-
-    user_job = supabase_admin.table("user_jobs").select("*").eq("id", data.user_job_id).single().execute().data
-    
-    if not user_job:
-        raise HTTPException(404, "non existing job for said user")
-    
-    if user_job["user_id"] != current_user["user_id"]:
-        raise HTTPException(status_code=403, detail="Forbidden")
-    
-    
+def cl_edit(data: EditCoverLetterRequest, user_job: dict = Depends(get_owned_user_job), current_user=Depends(get_current_user)):
     job = supabase_admin.table("jobs").select("*").eq("id", user_job["job_id"]).single().execute().data
     cv_json = user_job["cv_json"]
     
@@ -811,7 +758,7 @@ def cl_edit(data: EditCoverLetterRequest, current_user=Depends(get_current_user)
         "cover_letter_pdf_url": pdf_url
     }).eq("id", data.user_job_id).execute()
 
-    return {"status": "ok", "user_job_id": data.user_job_id}
+    return {"status": "ok", "user_job_id": user_job["id"]}
 
 
 
