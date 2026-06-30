@@ -191,8 +191,127 @@ Now parse and return ONLY the JSON.
   
   
   
+def cover_letter_generator(job: dict, cv_json: dict) -> str:
+    prompt = f"""
+You are writing a cover letter for a real applicant applying to a real job.
+
+This is a high-signal professional writing task. The goal is to clearly demonstrate capability through relevant experience and projects while remaining natural, grounded, and non-promotional in tone.
+
+============================================================
+STEP 1 — ROLE ANALYSIS (DO NOT OUTPUT)
+============================================================
+
+Read the job description carefully and identify:
+
+1. The PRIMARY nature of the role:
+   technical, operational, compliance, research, creative, business, or mixed.
+
+2. What the organization values most:
+   (e.g. reliability, accuracy, execution, collaboration, ownership, communication, technical depth, etc.)
+
+
+============================================================
+STEP 2 — WRITING RULES
+============================================================
+
+- Do NOT fabricate or assume anything not explicitly present in the profile.
+- Do NOT introduce new tools, skills, or outcomes not present in the data.
+- Do NOT exaggerate impact, scale, or seniority.
+- Do NOT repeat the same idea across paragraphs.
+- Do NOT use marketing or hype language such as:
+  "excited to apply", "passionate about", "great fit", "leverage", "impactful", "dynamic"
+
+- Avoid buzzword stacking in single sentences (max 2 tools/technologies per sentence).
+- Keep writing technically grounded but human and readable.
+- Avoid robotic or overly polished corporate phrasing.
+
+============================================================
+TONE
+============================================================
+
+- First person.
+- Calm, confident, and matter-of-fact.
+- Not sales-like, not emotional, not exaggerated.
+- Sounds like someone describing real work clearly and directly.
+- Slight natural variation in phrasing is good, but do not over-style.
+
+============================================================
+LENGTH
+============================================================
+
+- 3 paragraphs total
+- 350–425 words total (this is mandatory minimum seriousness level)
+
+============================================================
+STRUCTURE
+============================================================
+
+Paragraph 1:
+Explain why this role and organization are meaningful as a next step.
+Ground this in the job’s actual responsibilities and purpose.
+Do NOT copy job description language. Interpret it naturally.
+
+Paragraph 2:
+Cover selected EXPERIENCES.
+Explain what was actually done, how systems/processes were worked on, and what the contribution was.
+Focus on execution and technical clarity where relevant.
+Paragraph 2 must explicitly connect job responsibilities → matching experience evidence.
+Each experience described must answer: “which job requirement does this support?”
+
+Paragraph 3:
+Cover selected PROJECTS.
+Highlight technical depth, problem-solving, and systems thinking.
+Keep it grounded and factual. No exaggeration.
+
+Paragraph 4:
+(Yes, include a final paragraph)
+Simple closing:
+- genuine interest in the work
+- willingness to contribute and learn
+- no hype, no begging, no overstatement
+
+============================================================
+PROFILE
+============================================================
+
+Skills: {cv_json.get("skills", "")}
+Experience: {json.dumps(cv_json.get("experiences", []))}
+Education: {json.dumps(cv_json.get("education", []))}
+Projects: {json.dumps(cv_json.get("projects", []))}
+
+============================================================
+JOB
+============================================================
+
+Title: {job.get("title", "")}
+Company: {job.get("company", "")}
+Description: {job.get("description", "")}
+Requirements: {json.dumps(job.get("requirements", []))}
+Skills needed: {json.dumps(job.get("skills", []))}
+
+============================================================
+OUTPUT RULE (ABSOLUTE)
+============================================================
+
+Return ONLY the cover letter text.
+No title.
+No greeting.
+No sign-off.
+No commentary.
+"""
+    resp = groq_client.chat.completions.create(
+        messages=[
+            {"role": "system", "content": "You write cover letters that sound like real humans wrote them — specific, confident, and grounded in the person's actual background."},
+            {"role": "user", "content": prompt},
+        ],
+        model="openai/gpt-oss-120b",
+        temperature=0.5
+    )
+    return resp.choices[0].message.content
   
-def cover_letter_generator(job: dict, user_profile: dict) -> str:
+  
+  
+def cover_letter_generator_for_new_job(job: dict, user_profile: dict) -> str:
     prompt = f"""
 You are writing a cover letter for a real applicant applying to a real job.
 

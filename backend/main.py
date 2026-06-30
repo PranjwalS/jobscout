@@ -285,96 +285,6 @@ def update_profile(body: ProfileUpdateRequest, current_user=Depends(get_current_
 
 
 
-### ── CV endpoints ───────────────────────────────────────────────────────────
-
-@app.post("/cv/upload")
-async def upload_cv(file: UploadFile = File(...), current_user = Depends(get_current_user)):
-    path = f"{current_user['user_id']}/cv.pdf"
-    file_bytes = await file.read()
-    supabase_admin.storage.from_("cvs").upload(path, file_bytes, {"upsert":"true"})
-    pdf_url = supabase_admin.storage.from_("cvs").get_public_url(path)
-    
-    converter = DocumentConverter()
-    result = converter.convert(pdf_url) 
-    cv_information = result.document.export_to_markdown()
-    
-    json_output = cv_parser(cv_information)
-
-    contact = json_output.get("contact", {})
-    supabase_admin.table("profiles").update({
-        "cv_pdf_url": pdf_url,
-        "cv_parsed_text": cv_information,
-        "cv_json": json_output,
-        "education": stamp_ids(json_output.get("education", [])),
-        "experiences": stamp_ids(json_output.get("experience", [])),
-        "projects": stamp_ids(json_output.get("projects", [])),
-        "skills": json_output.get("skills", {}).get("skills", ""),
-        "phone": contact.get("phone", ""),
-        "email": contact.get("email", ""),
-        "location": contact.get("location", ""),
-        "links": contact.get("links", []),
-    }).eq("user_id", current_user["user_id"]).execute()
-
-    return {"status": "ok", "cv_pdf_url": pdf_url}
-
-
-@app.get("/cv/get")
-async def get_cv(current_user = Depends(get_current_user)):
-    result = supabase_admin.table("profiles").select("*").eq("user_id", current_user["user_id"]).single().execute()
-    user_profile = result.data
-    return {
-        "education": [EducationEntry(**e) for e in user_profile.get("education", []) if e],
-        "experience": [ExperienceEntry(**e) for e in user_profile.get("experiences", []) if e],
-        "projects": [ProjectsEntry(**e) for e in user_profile.get("projects", []) if e],
-        "skills": user_profile.get("skills")
-    }
-    
-    
-@app.put("/cv/update")
-async def update_cv(body: BulkUpdateRequest, current_user = Depends(get_current_user)):
-    result = supabase_admin.table("profiles").select("*").eq("user_id", current_user["user_id"]).single().execute()
-    profile = result.data
-    
-    section_map = {
-        "education": "education",
-        "experiences": "experiences",
-        "projects": "projects",
-    }
-    
-    section_model_map = {
-        "education": EducationEntry,
-        "experiences": ExperienceEntry,
-        "projects": ProjectsEntry,
-    }
-    
-    # group updates by section so we only write each column once
-    affected = {}
-    for update in body.updates:
-        column = section_map.get(update.section)
-        model = section_model_map.get(update.section)
-        if not column:
-            raise HTTPException(status_code=400, detail=f"Invalid section: {update.section}")
-        if column not in affected:
-            affected[column] = profile.get(column, [])
-        for entry in affected[column]:
-            if entry.get("id") == update.id:
-                entry.update(update.data)
-                try:
-                    validated = model(**entry)
-                except ValidationError as e:
-                    raise HTTPException(status_code=422, detail=str(e))
-                entry.clear()
-                entry.update(validated.dict())
-                break
-            
-    for column, entries in affected.items():
-        supabase_admin.table("profiles").update({
-            column: entries
-        }).eq("user_id", current_user["user_id"]).execute()
-    
-    return {"status": "ok"}
-
-
 #### careertwin parts
 
 @app.get("/careertwin/get_info")
@@ -546,6 +456,107 @@ def update_user_job_status(user_job_id: str, new_status: str, current_user=Depen
 
 
 
+
+
+
+### ── CV endpoints for PROFILE ───────────────────────────────────────────────────────────
+
+@app.post("/cv/upload")
+async def upload_cv(file: UploadFile = File(...), current_user = Depends(get_current_user)):
+    path = f"{current_user['user_id']}/cv.pdf"
+    file_bytes = await file.read()
+    supabase_admin.storage.from_("cvs").upload(path, file_bytes, {"upsert":"true"})
+    pdf_url = supabase_admin.storage.from_("cvs").get_public_url(path)
+    
+    converter = DocumentConverter()
+    result = converter.convert(pdf_url) 
+    cv_information = result.document.export_to_markdown()
+    
+    json_output = cv_parser(cv_information)
+
+    contact = json_output.get("contact", {})
+    supabase_admin.table("profiles").update({
+        "cv_pdf_url": pdf_url,
+        "cv_parsed_text": cv_information,
+        "cv_json": json_output,
+        "education": stamp_ids(json_output.get("education", [])),
+        "experiences": stamp_ids(json_output.get("experience", [])),
+        "projects": stamp_ids(json_output.get("projects", [])),
+        "skills": json_output.get("skills", {}).get("skills", ""),
+        "phone": contact.get("phone", ""),
+        "email": contact.get("email", ""),
+        "location": contact.get("location", ""),
+        "links": contact.get("links", []),
+    }).eq("user_id", current_user["user_id"]).execute()
+
+    return {"status": "ok", "cv_pdf_url": pdf_url}
+
+
+@app.get("/cv/get")
+async def get_cv(current_user = Depends(get_current_user)):
+    result = supabase_admin.table("profiles").select("*").eq("user_id", current_user["user_id"]).single().execute()
+    user_profile = result.data
+    return {
+        "education": [EducationEntry(**e) for e in user_profile.get("education", []) if e],
+        "experience": [ExperienceEntry(**e) for e in user_profile.get("experiences", []) if e],
+        "projects": [ProjectsEntry(**e) for e in user_profile.get("projects", []) if e],
+        "skills": user_profile.get("skills")
+    }
+    
+    
+@app.put("/cv/update")
+async def update_cv(body: BulkUpdateRequest, current_user = Depends(get_current_user)):
+    result = supabase_admin.table("profiles").select("*").eq("user_id", current_user["user_id"]).single().execute()
+    profile = result.data
+    
+    section_map = {
+        "education": "education",
+        "experiences": "experiences",
+        "projects": "projects",
+    }
+    
+    section_model_map = {
+        "education": EducationEntry,
+        "experiences": ExperienceEntry,
+        "projects": ProjectsEntry,
+    }
+    
+    # group updates by section so we only write each column once
+    affected = {}
+    for update in body.updates:
+        column = section_map.get(update.section)
+        model = section_model_map.get(update.section)
+        if not column:
+            raise HTTPException(status_code=400, detail=f"Invalid section: {update.section}")
+        if column not in affected:
+            affected[column] = profile.get(column, [])
+        for entry in affected[column]:
+            if entry.get("id") == update.id:
+                entry.update(update.data)
+                try:
+                    validated = model(**entry)
+                except ValidationError as e:
+                    raise HTTPException(status_code=422, detail=str(e))
+                entry.clear()
+                entry.update(validated.dict())
+                break
+            
+    for column, entries in affected.items():
+        supabase_admin.table("profiles").update({
+            column: entries
+        }).eq("user_id", current_user["user_id"]).execute()
+    
+    return {"status": "ok"}
+
+
+
+
+
+
+
+
+### ── CV endpoints for CUSTOM (per job) ───────────────────────────────────────────────────────────
+
 ### custom cv work, adds to cv_text in user_jobs
 #
 # cv_json shape (full object the frontend sends back on PUT /custom_cv/edit):
@@ -587,7 +598,7 @@ def cv_generator(job_id: str, dashboard_config_id: str, current_user=Depends(get
 
 
 @app.get("/custom_cv/get")
-def get_custom_cv(job_id: str, dashboard_config_id: str, current_user=Depends(get_current_user)):
+def cv_get(job_id: str, dashboard_config_id: str, current_user=Depends(get_current_user)):
     user_job = supabase_admin.table("user_jobs") \
         .select("*") \
         .eq("user_id", current_user["user_id"]) \
@@ -596,7 +607,7 @@ def get_custom_cv(job_id: str, dashboard_config_id: str, current_user=Depends(ge
         .single().execute().data
  
     return {"status": "ok", "user_job_id": user_job["id"], "cv_text": user_job["cv_json"]}
- 
+
  
 @app.put("/custom_cv/edit")
 def cv_edit(job_id: str, dashboard_config_id: str, cv_json: dict, current_user=Depends(get_current_user)):
@@ -614,33 +625,40 @@ def cv_edit(job_id: str, dashboard_config_id: str, cv_json: dict, current_user=D
     return {"status": "ok", "user_job_id": user_job["id"], "cv_text": cv_json}
  
 
+    
+    
+
+
+
+
+### ── CoverLetter endpoints for CUSTOM (per job) ───────────────────────────────────────────────────────────
+
 ### custom coverletter work, depends on cv_text
-###### SPLIT NEW_JOB_ADD INTO -> JOB_UPLOADER && COVERLETTER_GENERATOR(so its callable by scraper that naturally parses and uploads jobs, but first calls CV_GENERATOR)
-@app.post("/coverletter/new_cl")
-async def cl_generator(job_id: str, dashboard_config_id: str, current_user=Depends(get_current_user)):
+@app.post("/custom_cl/generate")
+async def cl_generator(user_job_id: str, current_user=Depends(get_current_user)):
     user_job = supabase_admin.table("user_jobs") \
         .select("*") \
-        .eq("user_id", current_user["user_id"]) \
-        .eq("job_id", job_id) \
-        .eq("dashboard_config_id", dashboard_config_id) \
+        .eq("id", user_job_id) \
         .single().execute().data
-        
-    cv_json = supabase_admin.table("user_jobs").select("*").eq("id", user_job["id"]).single.execute().data
-    if cv_json:
-        ...
-    else:           
-        ...
+    
+    if not user_job:
+        raise HTTPException(404, "non existing job for said user")
 
-    job_info = supabase_admin.table("jobs").select("*").eq("id", job_id).single.execute().data
+    if user_job["user_id"] != current_user["user_id"]:
+        raise HTTPException(status_code=403, detail="Forbidden")
+ 
+
+    job_info = supabase_admin.table("jobs").select("*").eq("id", user_job["job_id"]).single().execute().data
     job_data = {}
     sections = ["title", "company", "location", "description", "requirements", "skills", "salary", "duration", "fields"]
     for section in sections:
         job_data[section] = job_info[section]
     
+    cv_json = user_job.get("cv_json", "")
     
     ## LATER: instead of passing current_user, we'll filter for relevant experience/projects/etc to make cv_text and then pass that instead for more relevant coverletter gen as well as for new cv PDF generation
-    coverletter_text = cover_letter_generator(json_output, current_user)    
-    path = f"{current_user['user_id']}/coverletter_{job_id}.pdf"
+    coverletter_text = cover_letter_generator(job_data, cv_json)    
+    path = f"{current_user['user_id']}/coverletter_{user_job['job_id']}.pdf"
     html_data = get_cover_letter_html(
         cover_letter_text=coverletter_text,
         candidate_name=current_user.get("display_name", ""),
@@ -659,56 +677,29 @@ async def cl_generator(job_id: str, dashboard_config_id: str, current_user=Depen
     time.sleep(1)
     pdf_url = bucket.get_public_url(path)    
     
-    cv_text = current_user.get("cv_parsed_text", "")
+    supabase_admin.table("user_jobs").update({
+        "cover_letter_text": coverletter_text,
+        "cover_letter_html": html_data,
+        "cover_letter_pdf_url": pdf_url,
+    }).eq("id", user_job["id"]).execute()
+
+    return {"status": "ok", "user_job_id": user_job["id"], "coverletter_url": pdf_url}    
     
     
-    
-@app.post("/coverletter/new_job")
-async def new_job_add(file: UploadFile = File(...), current_user = Depends(get_current_user)):
-    file_bytes = await file.read()
-    converter = DocumentConverter()
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
-        tmp.write(file_bytes)
-        tmp_path = tmp.name
-    result = converter.convert(tmp_path)
-    os.unlink(tmp_path)
-    job_information = result.document.export_to_markdown()    
-    json_output = job_parser(job_information)
 
-
-    job_response = supabase_admin.table("jobs").insert({
-        "title": json_output.get("title", ""),
-        "company": json_output.get("company", ""),
-        "location": json_output.get("location", ""),
-        "description": json_output.get("description", ""),
-        "requirements": json_output.get("requirements", []),
-        "skills": json_output.get("skills", []),
-        "salary": json_output.get("salary", ""),
-        "duration": json_output.get("duration", ""),
-        "fields": json_output.get("fields", [])
-    }).execute()
-    
-    job_id = job_response.data[0]["id"]
-
-    user_job_response = supabase_admin.table("user_jobs").insert({ 
-        "user_id": current_user["user_id"],
-        "job_id": job_id,  
-    }).execute()
-    user_job_id = user_job_response.data[0]["id"]
-    
-    return {"status": "ok", "job_id": job_id, "user_job_id": user_job_id}
-
-
-## basically;
+# basically;
 # Backend sends HTML → frontend renders it in contentEditable
 # User edits visually
 # Frontend grabs element.innerText → plain text with \n\n
 # Sends plain text to PUT /coverletter/edit as content
 # Backend stores plain text → calls build_cover_letter_html → WeasyPrint → PDF bytes → uploads → returns new pdf_url
-
-@app.get("/coverletter/get")
-def get_coverletter(user_job_id: str, current_user=Depends(get_current_user)):
+@app.get("/custom_cl/get")
+def cl_get(user_job_id: str, current_user=Depends(get_current_user)):
     user_job = supabase_admin.table("user_jobs").select("*").eq("id", user_job_id).single().execute().data
+    
+    if not user_job:
+        raise HTTPException(404, "non existing job for said user")
+    
     if user_job["user_id"] != current_user["user_id"]:
         raise HTTPException(status_code=403, detail="Forbidden")
  
@@ -722,21 +713,27 @@ def get_coverletter(user_job_id: str, current_user=Depends(get_current_user)):
     )
  
     return {"status": "ok", "html_data": html_data, "coverletter_url": user_job["cover_letter_pdf_url"], "user_job_id": user_job_id }
-    
-@app.put("/coverletter/edit")
-def edit_coverletter(data: EditCoverLetterRequest, current_user=Depends(get_current_user)):
+        
+
+@app.put("/custom_cl/edit")
+def cl_edit(data: EditCoverLetterRequest, current_user=Depends(get_current_user)):
 
     user_job = supabase_admin.table("user_jobs").select("*").eq("id", data.user_job_id).single().execute().data
+    
+    if not user_job:
+        raise HTTPException(404, "non existing job for said user")
+    
     if user_job["user_id"] != current_user["user_id"]:
         raise HTTPException(status_code=403, detail="Forbidden")
     
     
     job = supabase_admin.table("jobs").select("*").eq("id", user_job["job_id"]).single().execute().data
-
+    cv_json = user_job["cv_json"]
+    
     if data.mode == "regenerate":
         # Full regeneration from scratch
         try:
-            coverletter_text = cover_letter_generator(job, current_user)
+            coverletter_text = cover_letter_generator(job, cv_json)
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Cover letter generation failed: {str(e)}")
         html_data = get_cover_letter_html(
@@ -777,3 +774,45 @@ def edit_coverletter(data: EditCoverLetterRequest, current_user=Depends(get_curr
     }).eq("id", data.user_job_id).execute()
 
     return {"status": "ok", "user_job_id": data.user_job_id}
+
+
+
+
+
+
+### ── Obsolete, to figure out: ───────────────────────────────────────────────────────────
+
+@app.post("/coverletter/new_job")
+async def new_job_add(file: UploadFile = File(...), current_user = Depends(get_current_user)):
+    file_bytes = await file.read()
+    converter = DocumentConverter()
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
+        tmp.write(file_bytes)
+        tmp_path = tmp.name
+    result = converter.convert(tmp_path)
+    os.unlink(tmp_path)
+    job_information = result.document.export_to_markdown()    
+    json_output = job_parser(job_information)
+
+
+    job_response = supabase_admin.table("jobs").insert({
+        "title": json_output.get("title", ""),
+        "company": json_output.get("company", ""),
+        "location": json_output.get("location", ""),
+        "description": json_output.get("description", ""),
+        "requirements": json_output.get("requirements", []),
+        "skills": json_output.get("skills", []),
+        "salary": json_output.get("salary", ""),
+        "duration": json_output.get("duration", ""),
+        "fields": json_output.get("fields", [])
+    }).execute()
+    
+    job_id = job_response.data[0]["id"]
+
+    user_job_response = supabase_admin.table("user_jobs").insert({ 
+        "user_id": current_user["user_id"],
+        "job_id": job_id,  
+    }).execute()
+    user_job_id = user_job_response.data[0]["id"]
+    
+    return {"status": "ok", "job_id": job_id, "user_job_id": user_job_id}
