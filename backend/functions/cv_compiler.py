@@ -13,6 +13,7 @@ import tempfile
 import shutil
 import uuid
 
+TEMPLATES_DIR = os.path.join(os.path.dirname(__file__), "templates")
 
 class LatexCompileError(RuntimeError):
     """Raised when pdflatex fails. .log holds the relevant tail of the compile log."""
@@ -42,6 +43,10 @@ def compile_cv_pdf(tex_source: str, engine: str = "pdflatex", timeout: int = 30)
     log_path = os.path.join(work_dir, f"{job_name}.log")
 
     try:
+        for fname in os.listdir(TEMPLATES_DIR):
+            if fname.endswith((".cls", ".sty")):
+                shutil.copy(os.path.join(TEMPLATES_DIR, fname), work_dir)
+        
         with open(tex_path, "w", encoding="utf-8") as f:
             f.write(tex_source)
 

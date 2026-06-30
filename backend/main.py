@@ -13,7 +13,6 @@ import httpx
 from jose import jwt, JWTError
 from pydantic import BaseModel
 from docling.document_converter import DocumentConverter
-from backend.functions.cv_filler import fill_template
 from functions.cv_and_cl_gen import cv_parser, job_parser, cover_letter_generator
 from functions.pdf_generator import generate_cover_letter_pdf, get_cover_letter_html, html_to_pdf
 import uuid
@@ -22,6 +21,7 @@ from routes.creation_dashboard import router as dashboard_router
 from routes.jobs import router as job_router
 from dependencies import get_owned_user_job, supabase_admin, supabase, get_current_user, FRONTEND_ORIGIN, redis_client
 from functions.cv_latex import cv_selector, stamp_cv_ids
+from functions.cv_filler import fill_template
 from functions.cv_compiler import compile_cv_pdf, LatexCompileError
 import csv
 
@@ -590,10 +590,14 @@ def cv_generator(user_job: dict=Depends(get_owned_user_job), current_user=Depend
     stamped: dict = stamp_cv_ids(selected)
     
     tex_source = fill_template(stamped, current_user)
+    with open("debug_output.tex", "w", encoding="utf-8") as f:
+        f.write(tex_source)
+    
     try:
         pdf_bytes = compile_cv_pdf(tex_source)
     except LatexCompileError as e:
-        raise HTTPException(status_code=500, detail=f"CV compile failed: {str(e)}")
+            print(e.log)
+            raise HTTPException(status_code=500, detail=f"CV compile failed: {str(e)}\n\n{e.log[-1500:]}")
 
     path = f"{current_user['user_id']}/cv_{user_job['id']}.pdf"
     bucket = supabase_admin.storage.from_("custom_cvs")
@@ -622,10 +626,12 @@ def cv_edit(cv_json: dict, user_job: dict=Depends(get_owned_user_job), current_u
     stamped = stamp_cv_ids(cv_json)
     
     tex_source = fill_template(stamped, current_user)
+    print("here")
     try:
         pdf_bytes = compile_cv_pdf(tex_source)
     except LatexCompileError as e:
-        raise HTTPException(status_code=500, detail=f"CV compile failed: {str(e)}")
+            print(e.log)
+            raise HTTPException(status_code=500, detail=f"CV compile failed: {str(e)}\n\n{e.log[-1500:]}")
 
     path = f"{current_user['user_id']}/cv_{user_job['id']}.pdf"
     bucket = supabase_admin.storage.from_("custom_cvs")

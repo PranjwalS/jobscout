@@ -1,0 +1,92 @@
+\documentclass{resume}
+\usepackage[left=0.75in,top=0.2in,right=0.75in,bottom=0.2in]{geometry}
+\usepackage{fontawesome5}
+\usepackage{hyperref}
+\renewcommand{\familydefault}{\rmdefault}
+
+\hypersetup{colorlinks=true,linkcolor=black,urlcolor=black}
+
+\makeatletter
+\renewcommand{\printname}{
+  \begingroup
+    \hfil{\namesize\bf \@name}\hfil
+    \nameskip\break
+  \endgroup
+}
+\makeatother
+
+%% \tagged{id}{text} bakes a named PDF anchor — only safe to use INSIDE \begin{document},
+%% never inside \name{}/\address{} since those are stored via \def and expanded later
+%% by resume.cls's \AtBeginDocument hook, which corrupts hyperref's internal state.
+\newcommand{\tagged}[2]{\hypertarget{#1}{#2}}
+
+\name{Pranjwal Singh}
+\address{
+{\fontsize{9}{11}\selectfont
+4387734010 \hspace{0.8mm} $\vert$ \hspace{0.8mm}
+singhpranjwal@gmail.com \hspace{0.8mm} $\vert$ \hspace{0.8mm}
+www.linkedin.com/in/pranjwal-s-01979b242 \hspace{0.8mm} $\vert$ \hspace{0.8mm}
+github.com/PranjwalS \hspace{0.8mm} $\vert$ \hspace{0.8mm}
+pranjwal-singh.vercel.app
+}}
+
+\begin{document}
+
+%% ── Education ────────────────────────────────────────────────────────────────
+\begin{rSection}{Education}
+
+{\fontsize{11}{15}\bf \tagged{63d77364_school}{University of Waterloo}} \hfill {\tagged{63d77364_location}{}} \\
+{\fontsize{10}{12} \tagged{63d77364_degree}{Bachelor of Computer Science Honours}} \hfill {\small \tagged{63d77364_date}{April 2029}} \\
+{\fontsize{9}{12}\selectfont \tagged{63d77364_field}{Computer Science}}
+
+\end{rSection}
+
+%% ── Experience ───────────────────────────────────────────────────────────────
+\begin{rSection}{Experience}
+
+\end{rSection}
+
+%% ── Skills ───────────────────────────────────────────────────────────────────
+\vspace{-2mm}
+\begin{rSection}{Skills}
+{\fontsize{9.5}{13}\selectfont
+\begin{tabular}{ @{} >{\bfseries}l @{\hspace{4ex}} p{0.69\textwidth} }
+
+\end{tabular}
+}
+\end{rSection}
+
+%% ── Projects ─────────────────────────────────────────────────────────────────
+\vspace{-2mm}
+\begin{rSection}{Projects}
+\vspace{-1mm}
+
+\fontsize{10}{12}\begin{rSubsection}
+  {\tagged{8dd056f0_name}{Job Aggregator, Tracker \& Career Platform - JobScout}}{}{}{}
+{\fontsize{9}{12}\selectfont
+
+  \item \tagged{proj_8dd056f0_b1}{Designed and delivered a comprehensive career-platform briefing system where users maintain profiles and generate job-search dashboards; each dashboard runs scheduled scrapers across multiple job boards, applies LLM-driven scoring, and automatically produces customized cover letters, CVs, and pre-interview preparation packets (Q\&A and mock interview simulations) via Celery-Redis pipelines, while analytical email alerts surface high-scoring matches for managerial review.}
+
+  \item \tagged{proj_8dd056f0_b2}{Developed a Chrome extension and an evolving LLM-powered Playwright automation bot to streamline application workflows, providing form-autofill capabilities and automated submission processes that enhance operational efficiency and support continuous process improvement for end-users.}
+
+  \item \textbf{Tech Stack:} \textit{\tagged{8dd056f0_stack}{}}
+}
+\end{rSubsection}
+\vspace{-2mm}
+
+\fontsize{10}{12}\begin{rSubsection}
+  {\tagged{fa030404_name}{Agentic AI Coding Assistant - EnOSym}}{}{}{}
+{\fontsize{9}{12}\selectfont
+
+  \item \tagged{proj_fa030404_b1}{Engineered a locally hosted, voice-enabled coding assistant that leverages Whisper and Coqui TTS for bidirectional communication, employs Retrieval-Augmented Generation over codebases and conversation history stored in SQLite, and orchestrates LLM tool usage through a LangChain agentic loop to retrieve relevant files, generate code, and execute solutions, thereby delivering analytical insights and actionable recommendations to developers.}
+
+  \item \tagged{proj_fa030404_b2}{Constructed an isolated sandbox environment integrated with Playwright for iterative code generation, testing, and browser-based task automation, and implemented an autonomous background agent that continuously scans repositories for improvement opportunities, presenting concise briefing reports that inform stakeholders of suggested enhancements.}
+
+  \item \textbf{Tech Stack:} \textit{\tagged{fa030404_stack}{}}
+}
+\end{rSubsection}
+\vspace{-2mm}
+
+\end{rSection}
+
+\end{document}

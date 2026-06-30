@@ -1,6 +1,7 @@
 \documentclass{resume}
 \usepackage[left=0.75in,top=0.2in,right=0.75in,bottom=0.2in]{geometry}
-\usepackage{hyperref, fontawesome5}
+\usepackage{fontawesome5}
+\usepackage{hyperref}
 \renewcommand{\familydefault}{\rmdefault}
 
 \hypersetup{colorlinks=true,linkcolor=black,urlcolor=black}
@@ -14,17 +15,19 @@
 }
 \makeatother
 
-%% \tagged{id}{text} bakes a named PDF anchor
+%% \tagged{id}{text} bakes a named PDF anchor — only safe to use INSIDE \begin{document},
+%% never inside \name{}/\address{} since those are stored via \def and expanded later
+%% by resume.cls's \AtBeginDocument hook, which corrupts hyperref's internal state.
 \newcommand{\tagged}[2]{\hypertarget{#1}{#2}}
 
-\name{\tagged{contact_name}{<<contact_name>>}}
+\name{<<contact_name>>}
 \address{
 {\fontsize{9}{11}\selectfont
-\tagged{contact_phone}{<<contact_phone>>} \hspace{0.8mm} $\vert$ \hspace{0.8mm}
-\underline{\href{mailto:<<contact_email_raw>>}{\tagged{contact_email}{<<contact_email>>}}} \hspace{0.8mm} $\vert$ \hspace{0.8mm}
-\underline{\href{<<contact_linkedin_url>>}{\tagged{contact_linkedin}{<<contact_linkedin>>}}} \hspace{0.8mm} $\vert$ \hspace{0.8mm}
-\underline{\href{<<contact_github_url>>}{\tagged{contact_github}{<<contact_github>>}}} \hspace{0.8mm} $\vert$ \hspace{0.8mm}
-\underline{\href{<<contact_portfolio_url>>}{\tagged{contact_portfolio}{<<contact_portfolio>>}}}
+<<contact_phone>> \hspace{0.8mm} $\vert$ \hspace{0.8mm}
+<<contact_email>> \hspace{0.8mm} $\vert$ \hspace{0.8mm}
+<<contact_linkedin>> \hspace{0.8mm} $\vert$ \hspace{0.8mm}
+<<contact_github>> \hspace{0.8mm} $\vert$ \hspace{0.8mm}
+<<contact_portfolio>>
 }}
 
 \begin{document}
@@ -47,12 +50,9 @@
   {\tagged{<<exp.id>>_title}{<<exp.title>>}}
   {\textit{\tagged{<<exp.id>>_location}{<<exp.location>>}}}
 {\fontsize{10}{12}\selectfont
-\begin{itemize}
-  \itemsep -0.5em
 %%FOR_EACH bullet IN bullets%%
   \item \tagged{<<bullet.id>>}{<<bullet.value>>}
 %%END_FOR%%
-\end{itemize}
 }
 \end{rSubsection}
 \vspace{-3mm}
@@ -79,14 +79,11 @@
 \fontsize{10}{12}\begin{rSubsection}
   {\tagged{<<proj.id>>_name}{<<proj.name>>}}{}{}{}
 {\fontsize{9}{12}\selectfont
-\begin{itemize}
-  \renewcommand{\labelitemi}{\scriptsize\textbullet}
-  \setlength{\itemsep}{-0.3em}
 %%FOR_EACH bullet IN bullets%%
   \item \tagged{<<bullet.id>>}{<<bullet.value>>}
 %%END_FOR%%
-  \\ \textbf{Tech Stack:} \textit{\tagged{<<proj.id>>_stack}{<<proj.stack>>}}
-\end{itemize}}
+  \item \textbf{Tech Stack:} \textit{\tagged{<<proj.id>>_stack}{<<proj.stack>>}}
+}
 \end{rSubsection}
 \vspace{-2mm}
 %%END_FOR%%

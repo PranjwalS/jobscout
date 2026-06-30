@@ -16,10 +16,49 @@ def load_template(template_name: str) -> str:
         return f.read()
 
 
+_LATEX_SPECIAL_CHARS = {
+    "\\": r"\textbackslash{}",
+    "&": r"\&",
+    "%": r"\%",
+    "$": r"\$",
+    "#": r"\#",
+    "_": r"\_",
+    "{": r"\{",
+    "}": r"\}",
+    "~": r"\textasciitilde{}",
+    "^": r"\textasciicircum{}",
+}
+
+_UNICODE_REPLACEMENTS = {
+    "\u2011": "-",   # non-breaking hyphen
+    "\u2013": "--",  # en dash
+    "\u2014": "---", # em dash
+    "\u2018": "'", "\u2019": "'",
+    "\u201c": '"', "\u201d": '"',
+    "\u2026": "...",
+}
+
+def _sanitize_latex_text(text: str) -> str:
+    for bad, good in _UNICODE_REPLACEMENTS.items():
+        text = text.replace(bad, good)
+    return text
+
+def _escape_latex(text: str) -> str:
+    text = text.replace("\\", _LATEX_SPECIAL_CHARS["\\"])
+    for ch, repl in _LATEX_SPECIAL_CHARS.items():
+        if ch == "\\":
+            continue
+        text = text.replace(ch, repl)
+    return text
+
 def _val(field) -> str:
     if isinstance(field, dict):
-        return str(field.get("value", ""))
-    return str(field) if field is not None else ""
+        raw = str(field.get("value", ""))
+    else:
+        raw = str(field) if field is not None else ""
+    raw = _sanitize_latex_text(raw)   # normalize unicode punctuation first
+    return _escape_latex(raw)          # then escape latex special chars
+
 
 
 def _short_id(seed: str) -> str:
@@ -63,12 +102,14 @@ def _find_matching_end(text: str, start: int) -> int:
 
 def _substitute_labels(text: str, var: str, item: dict) -> str:
     def _sub(m):
-        label = m.group(1)              # e.g. "exp.title"
+        label = m.group(1)
         parts = label.split(".", 1)
         if parts[0] != var:
-            return m.group(0)           # not our var — leave for outer scope
+            return m.group(0)
         key = parts[1] if len(parts) > 1 else parts[0]
         raw = item.get(key, "")
+        if key == "id":
+            return str(raw) if raw is not None else ""   # never escape ids
         return _val(raw)
     return _LABEL_RE.sub(_sub, text)
 
@@ -148,7 +189,7 @@ def _normalise_education(items: list) -> list:
 
 # ── main ──────────────────────────────────────────────────────────────────────
 
-def fill_template(cv_json: dict, profile: dict, template_name: str = "default") -> str:
+def fill_template(cv_json: dict, profile: dict, template_name: str = "cv_temp1") -> str:
     tpl = load_template(template_name)
 
     # 1. contact scalars
