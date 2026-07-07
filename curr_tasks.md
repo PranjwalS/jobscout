@@ -26,36 +26,36 @@ one thing — don't forget the subscription/paywall layer before you call it MVP
 - [x] `schemas.md` — finalize all data schemas
 - [x] `models.py` — define all ORM / pydantic models
 - [x] Make entities on Supabase — create tables, relationships, RLS policies
-- [ ] Setup scraper pipeline in `scraper.py`
-- [ ] Populate `jobs` table via scraper
-- [ ] Populate `user_jobs` from jobs
+- [x] Setup scraper pipeline in `scraper.py`
+- [x] Populate `jobs` table via scraper
+- [x] Populate `user_jobs` from jobs
 
 ---
 
 ## 🤖 Scoring & Generation Logic
 
-- [ ] Generalize `scoring.py` — CV → LLM direction
-- [ ] Create LLM → CV scoring direction (reverse flow)
-- [ ] Create prompt for LLM scoring
-- [ ] Generalize `coverletter_generation.py`
-- [ ] Generalize `cv_generation.py`
+- [x] Generalize `scoring.py` — CV → LLM direction
+- [x] Create LLM → CV scoring direction (reverse flow)
+- [x] Create prompt for LLM scoring
+- [x] Generalize `coverletter_generation.py`
+- [x] Generalize `cv_generation.py`
 
 ---
 
 ## 📄 CV & Cover Letter Tooling
 
-- [ ] Setup LaTeX compiler
+- [x] Setup LaTeX compiler
 - [ ] Make visual editor for CV and cover letter
 
 ---
 
 ## 🖥️ Frontend — Core Setup
 
-- [ ] Create new frontend — Jira-style layout with sidebar
-- [ ] Setup login logic with new backend
-- [ ] Setup dashboard creation logic in backend
-- [ ] Setup login forms in frontend
-- [ ] Setup dashboard creation forms in frontend
+- [x] Create new frontend — Jira-style layout with sidebar
+- [x] Setup login logic with new backend
+- [x] Setup dashboard creation logic in backend
+- [x] Setup login forms in frontend
+- [x] Setup dashboard creation forms in frontend
 - [ ] Test the full auth + dashboard creation flow
 
 ---
@@ -74,7 +74,7 @@ one thing — don't forget the subscription/paywall layer before you call it MVP
 
 ## 🔗 Integration & Wiring
 
-- [ ] Connect scoring, CV, and resume logic to dashboard frontend
+- [x] Connect scoring, CV, and resume logic to dashboard frontend
 - [ ] Make dashboard fully functional end-to-end
 
 ---
