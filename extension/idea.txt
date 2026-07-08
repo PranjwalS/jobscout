@@ -1,0 +1,7 @@
+this just the google chrome extension that'll allow users to auto fill application pages...
+it could also just hold the setup of the autoapplybot that comes in later as in;
+    all the endpoints that bot refers to particularly regarding fetching user information could be the same
+    as the ones used in the extension, so we need to figure out a way to make the abstraction between the two to work together
+
+
+profile.json hence needs to be removed and replaced with endpoints that fetch specific data from the db itself

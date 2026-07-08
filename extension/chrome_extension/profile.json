@@ -1,0 +1,161 @@
+{
+  "personal": {
+    "first_name": "Pranjwal",
+    "last_name": "Singh",
+    "full_name": "Pranjwal Singh",
+    "email": "singhpranjwal@gmail.com",
+    "phone": "4387734010",
+    "phone_formatted": "+1 (438) 773-4010",
+    "date_of_birth": "29-05-2007",
+    "gender": "Male",
+    "pronouns": "He/Him",
+    "ethnicity": "Asian",
+    "languages_spoken": ["English", "Hindi", "French"]
+  },
+
+  "location": {
+    "address_line_1": "18 James St",
+    "address_line_2": "",
+    "city": "Waterloo",
+    "province_state": "Ontario",
+    "province_state_code": "ON",
+    "country": "Canada",
+    "country_code": "CA",
+    "postal_code": "N2J2S9",
+    "timezone": "America/Toronto"
+  },
+
+  "identity": {
+    "citizenship": "Canadian Citizen",
+    "work_authorization_canada": "yes",
+    "work_authorization_us": "no",
+    "requires_sponsorship": "yes",
+    "veteran_status": "no",
+    "disability_status": "no"
+  },
+
+  "professional": {
+    "current_title": "Software Developer",
+    "years_of_experience": "2",
+    "employment_type_preferred": "Internship",
+    "work_arrangement_preferred": "Hybrid",
+    "willing_to_relocate": "yes",
+    "salary_expectation_cad": "",
+    "salary_expectation_usd": "",
+    "notice_period": "Immediately",
+    "linkedin": "https://linkedin.com/in/pranjwal-singh-01979b242",
+    "github": "https://github.com/PranjwalS",
+    "portfolio": "",
+    "website": ""
+  },
+
+  "coop": {
+    "seeking_coop": "yes",
+    "coop_term": "Fall 2026",
+    "coop_sequence": "Fall",
+    "coop_year": "2026",
+    "program": "Computer Science Co-op",
+    "student_id": "",
+    "currently_enrolled": "yes",
+    "on_study_term": "no",
+    "on_coop_term": "no"
+  },
+
+  "education": [
+    {
+      "institution": "University of Waterloo",
+      "degree": "Bachelor of Computer Science",
+      "degree_short": "B.CS",
+      "field_of_study": "Computer Science",
+      "specialization": "Digital Hardware",
+      "start_year": "2025",
+      "start_month": "September",
+      "graduation_year": "2030",
+      "graduation_month": "April",
+      "expected_graduation": "April 2030",
+      "gpa": "3.9",
+      "gpa_scale": "4.0",
+      "currently_enrolled": "yes"
+    }
+  ],
+
+  "experience": [
+    {
+      "company": "CJCR, Department of National Defence",
+      "title": "Software Developer Intern",
+      "start_date": "June 2025",
+      "end_date": "August 2025",
+      "current": "no",
+      "location": "St-Jean, QC",
+      "description": "Built Power Apps solutions for reporting dashboards, audit tracking, and cadet asset management, integrating Dataverse and SQL and implementing logic in Power Fx. Built and shipped features for the core Vue.js web application used by 10,000+ program staff nationwide, including new pages, UI components, and dynamic dashboards. Extended a .NET backend by introducing new data entities, implementing SignalR Hubs, and developing RESTful APIs supporting asset tracking and reporting."
+    },
+    {
+      "company": "Ericsson",
+      "title": "Digital Transformation and Software Testing Intern",
+      "start_date": "June 2024",
+      "end_date": "August 2024",
+      "current": "no",
+      "location": "Ottawa, ON",
+      "description": "Monitored and debugged software pipelines using Jenkins and Kubernetes, diagnosing and resolving build and deployment failures by inspecting pod status and reviewing logs. Maintained Grafana dashboards tracking KPI and performance metrics, supported software testing workflows, and contributed to operational reporting across telecom infrastructure."
+    }
+  ],
+
+  "skills": {
+    "languages": ["Python", "JavaScript", "C", "SQL", "Bash"],
+    "frameworks": ["React", "React Native", "Vue.js", "FastAPI", "Flask", "Celery", "Jetpack Compose"],
+    "tools": ["Git", "GitHub", "Docker", "Jenkins", "Linux", "Supabase", "Vercel", "Render", "Android Studio", "Unity", "SQLAlchemy", "PostgreSQL"],
+    "cloud": ["Azure DevOps", "Azure Blob", "Azure App Service", "Power Platform"],
+    "all_skills_string": "Python, JavaScript, C, SQL, Bash, React, React Native, Vue.js, FastAPI, Flask, Celery, Jetpack Compose, Git, GitHub, Docker, Jenkins, Linux, Supabase, Vercel, Render, PostgreSQL, SQLAlchemy, Azure, Power Platform"
+  },
+
+  "projects": [
+    {
+      "name": "Point-of-Sale Platform (Web and Mobile)",
+      "description": "Architected a full-stack React + FastAPI point-of-sale platform hosted on Azure App Service, covering onboarding, inventory, and products management with Supabase for auth and DB access. Built a React Native mPOS app for real-time checkout, product scanning, and receipts generation. Developed automated web scraping and data pipelines to generate sales and pricing suggestions using Celery and Redis.",
+      "tech_stack": "React, React Native, FastAPI, PostgreSQL, Supabase, Azure, Redis, Celery"
+    },
+    {
+      "name": "Automated Job Aggregator and Application Dashboard",
+      "description": "Built a full-stack job aggregation platform that scrapes major job boards, runs Celery + Redis async pipelines to rank listings and generate custom cover letters via LLM, and surfaces results in a React dashboard with application tracking, direct apply links, and email alerts for high-ranked matches.",
+      "tech_stack": "React, FastAPI, PostgreSQL, Supabase, Azure App Service, Redis, Celery"
+    },
+    {
+      "name": "mute. — App and Website Restriction Android App",
+      "description": "Built an Android app in Kotlin to block apps, websites, and URLs based on keywords, timers, schedules, location triggers, and usage limits, along a context-aware notification mode that dynamically suppresses non-essential alerts. Developed a FastAPI backend on Render for configuration backups, usage statistics, and safe access recovery flows. Launched on Google Play Store.",
+      "tech_stack": "Kotlin, Jetpack Compose, FastAPI, Python, PostgreSQL, Render"
+    }
+  ],
+
+  "documents": {
+    "resume_filename": "Pranjwal_Singh_Resume.pdf",
+    "resume_available": "yes",
+    "cover_letter_filename": "Pranjwal_Singh_CoverLetter.pdf",
+    "cover_letter_available": "yes",
+    "transcript_filename": "Pranjwal_Singh_Transcript.pdf",
+    "transcript_available": "yes"
+  },
+
+  "application_essays": {
+    "why_this_company": "I'm excited about opportunities where I can work on meaningful products at scale. I enjoy working in fast-paced environments where I can contribute across the full stack.",
+    "greatest_strength": "My ability to break down complex problems and build practical, scalable solutions. I'm also a quick learner who adapts well to new tech stacks.",
+    "greatest_weakness": "I sometimes spend too much time optimizing code before shipping — I've been actively working on balancing perfectionism with delivery speed.",
+    "tell_me_about_yourself": "I'm a Computer Science student at the University of Waterloo with 2 internships under my belt at the Department of National Defence and Ericsson. I enjoy building full-stack web applications, backend systems, APIs, and automation tooling. Currently based in Waterloo, Ontario and seeking Fall 2026 co-op opportunities.",
+    "career_goals": "I want to grow as an engineer, work on impactful products, and eventually take on more technical leadership responsibility.",
+    "how_did_you_hear": "Online job board",
+    "cover_letter_opening": "I'm excited to apply for this position. As a Computer Science student at the University of Waterloo with hands-on internship experience at the Department of National Defence and Ericsson, I've built production systems across the full stack and I'm eager to bring that experience to your team.",
+    "additional_info": ""
+  },
+
+  "references": {
+    "available_on_request": "yes"
+  },
+
+  "preferences": {
+    "contact_preference": "email",
+    "available_start_date": "Immediately",
+    "part_time_available": "no",
+    "contract_available": "yes",
+    "internship_available": "yes",
+    "remote_only": "no"
+  }
+}

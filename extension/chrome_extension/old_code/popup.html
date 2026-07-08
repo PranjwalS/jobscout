@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Apply AI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0a0f;
+      --surface: #111118;
+      --border: #1e1e2e;
+      --accent: #7c6dfa;
+      --accent2: #fa6d9a;
+      --text: #e8e8f0;
+      --muted: #5a5a7a;
+      --success: #6dfabc;
+    }
+
+    body {
+      width: 260px;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Syne', sans-serif;
+      padding: 0;
+      overflow: hidden;
+    }
+
+    .header {
+      padding: 16px 18px 12px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .header::before {
+      content: '';
+      position: absolute;
+      top: -30px; left: -20px;
+      width: 120px; height: 80px;
+      background: radial-gradient(circle, rgba(124,109,250,0.25) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .logo {
+      width: 28px; height: 28px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+
+    .header-text h1 {
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      color: var(--text);
+      line-height: 1;
+    }
+
+    .header-text p {
+      font-family: 'DM Mono', monospace;
+      font-size: 9px;
+      color: var(--muted);
+      margin-top: 2px;
+      letter-spacing: 0.06em;
+    }
+
+    .status-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--muted);
+      margin-left: auto;
+      transition: background 0.3s;
+      flex-shrink: 0;
+    }
+
+    .status-dot.active { background: var(--success); box-shadow: 0 0 6px var(--success); }
+    .status-dot.detecting { background: var(--accent); box-shadow: 0 0 6px var(--accent); animation: pulse 1.2s infinite; }
+
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+    .buttons {
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .btn {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 11px 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      transition: all 0.18s ease;
+      position: relative;
+      overflow: hidden;
+      text-align: left;
+    }
+
+    .btn::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      transition: opacity 0.18s;
+    }
+
+    .btn:hover { border-color: var(--accent); transform: translateY(-1px); }
+    .btn:hover::after { opacity: 1; }
+    .btn:active { transform: translateY(0px); }
+
+    .btn.primary { border-color: rgba(124,109,250,0.4); }
+    .btn.primary::after { background: linear-gradient(135deg, rgba(124,109,250,0.07), transparent); }
+    .btn.primary:hover { border-color: var(--accent); box-shadow: 0 0 16px rgba(124,109,250,0.15); }
+
+    .btn.secondary::after { background: linear-gradient(135deg, rgba(250,109,154,0.07), transparent); }
+    .btn.secondary:hover { border-color: var(--accent2); box-shadow: 0 0 16px rgba(250,109,154,0.12); }
+
+    .btn.tertiary::after { background: linear-gradient(135deg, rgba(109,250,188,0.07), transparent); }
+    .btn.tertiary:hover { border-color: var(--success); box-shadow: 0 0 16px rgba(109,250,188,0.12); }
+
+    .btn-icon {
+      width: 30px; height: 30px;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+
+    .primary .btn-icon { background: rgba(124,109,250,0.15); }
+    .secondary .btn-icon { background: rgba(250,109,154,0.15); }
+    .tertiary .btn-icon { background: rgba(109,250,188,0.15); }
+
+    .btn-text { flex: 1; }
+    .btn-text strong {
+      display: block;
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: 0.01em;
+      line-height: 1.2;
+    }
+    .btn-text span {
+      font-family: 'DM Mono', monospace;
+      font-size: 9px;
+      color: var(--muted);
+      letter-spacing: 0.04em;
+      margin-top: 2px;
+      display: block;
+    }
+
+    .btn-arrow {
+      font-size: 10px;
+      color: var(--muted);
+      transition: transform 0.18s, color 0.18s;
+    }
+    .btn:hover .btn-arrow { transform: translateX(2px); color: var(--text); }
+
+    .footer {
+      padding: 10px 14px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    #status {
+      font-family: 'DM Mono', monospace;
+      font-size: 9px;
+      color: var(--muted);
+      letter-spacing: 0.05em;
+      transition: color 0.3s;
+    }
+
+    #status.success { color: var(--success); }
+    #status.error { color: var(--accent2); }
+    #status.loading { color: var(--accent); }
+
+    .toggle-panel {
+      font-family: 'DM Mono', monospace;
+      font-size: 9px;
+      color: var(--muted);
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: 3px 7px;
+      cursor: pointer;
+      letter-spacing: 0.04em;
+      transition: all 0.18s;
+    }
+    .toggle-panel:hover { color: var(--text); border-color: var(--accent); }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="logo">⚡</div>
+    <div class="header-text">
+      <h1>APPLY AI</h1>
+      <p>JOB ASSISTANT v1.0</p>
+    </div>
+    <div class="status-dot" id="statusDot"></div>
+  </div>
+
+  <div class="buttons">
+    <button class="btn primary" id="scanBtn">
+      <div class="btn-icon">🗂</div>
+      <div class="btn-text">
+        <strong>Autofill Profile</strong>
+        <span>fill fields with personal data</span>
+      </div>
+      <span class="btn-arrow">›</span>
+    </button>
+
+    <button class="btn secondary" id="cover">
+      <div class="btn-icon">✍️</div>
+      <div class="btn-text">
+        <strong>Insert Cover Letter</strong>
+        <span>ai-generated for this role</span>
+      </div>
+      <span class="btn-arrow">›</span>
+    </button>
+
+    <button class="btn tertiary" id="generate">
+      <div class="btn-icon">💡</div>
+      <div class="btn-text">
+        <strong>Answer Question</strong>
+        <span>highlight text → right click</span>
+      </div>
+      <span class="btn-arrow">›</span>
+    </button>
+  </div>
+
+  <div class="footer">
+    <span id="status">ready</span>
+    <button class="toggle-panel" id="togglePanel">panel ↗</button>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
