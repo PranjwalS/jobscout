@@ -6,8 +6,6 @@ import hashlib
 TEMPLATES_DIR = os.path.join(os.path.dirname(__file__), "templates")
 
 
-# ── helpers ───────────────────────────────────────────────────────────────────
-
 def load_template(template_name: str) -> str:
     path = os.path.join(TEMPLATES_DIR, f"{template_name}.tex")
     if not os.path.exists(path):
@@ -29,19 +27,23 @@ _LATEX_SPECIAL_CHARS = {
     "^": r"\textasciicircum{}",
 }
 
-_UNICODE_REPLACEMENTS = {
-    "\u2011": "-",   # non-breaking hyphen
-    "\u2013": "--",  # en dash
-    "\u2014": "---", # em dash
-    "\u2018": "'", "\u2019": "'",
-    "\u201c": '"', "\u201d": '"',
-    "\u2026": "...",
-    "\u202f": " ",  # narrow no-break space
-}
-
 def _sanitize_latex_text(text: str) -> str:
-    for bad, good in _UNICODE_REPLACEMENTS.items():
+    replacements = {
+        "\u2011": "-",
+        "\u2013": "--",
+        "\u2014": "---",
+        "\u2018": "'", "\u2019": "'",
+        "\u201c": '"', "\u201d": '"',
+        "\u2026": "...",
+        "\u202f": " ",
+        "\u00a0": " ",
+        "\u200b": "",
+        "\u2022": r"\textbullet",
+        "\u00b7": r"\cdot",
+    }
+    for bad, good in replacements.items():
         text = text.replace(bad, good)
+    text = text.encode("ascii", errors="ignore").decode("ascii")
     return text
 
 def _escape_latex(text: str) -> str:
@@ -65,29 +67,19 @@ def _short_id(seed: str) -> str:
     return hashlib.md5(seed.encode()).hexdigest()[:8]
 
 
-
-# ── nested-aware FOR_EACH parser ──────────────────────────────────────────────
-
 _OPEN_RE  = re.compile(r"%%FOR_EACH (\w+) IN (\w+)%%")
 _CLOSE_RE = re.compile(r"%%END_FOR%%")
 _LABEL_RE = re.compile(r"<<([^>]+)>>")
 
 
 def _find_matching_end(text: str, start: int) -> int:
-    """
-    Given `text` and `start` = index just after an opening %%FOR_EACH%%,
-    return the index of the matching %%END_FOR%% (start of that token).
-    Properly handles nesting.
-    """
     depth = 1
     pos   = start
     while pos < len(text) and depth > 0:
         next_open  = _OPEN_RE.search(text, pos)
         next_close = _CLOSE_RE.search(text, pos)
-
         if next_close is None:
             raise ValueError("Unmatched %%FOR_EACH%% — missing %%END_FOR%%")
-
         if next_open and next_open.start() < next_close.start():
             depth += 1
             pos = next_open.end()
@@ -96,7 +88,6 @@ def _find_matching_end(text: str, start: int) -> int:
             if depth == 0:
                 return next_close.start()
             pos = next_close.end()
-
     raise ValueError("Unmatched %%FOR_EACH%% — hit end of template")
 
 
@@ -107,6 +98,7 @@ def _substitute_labels(text: str, var: str, item: dict) -> str:
         if parts[0] != var:
             return m.group(0)
         key = parts[1] if len(parts) > 1 else parts[0]
+        # support nested dot access e.g. <<edu.school.id>>, <<edu.school.value>>
         keys = key.split(".")
         raw = item
         for k in keys:
@@ -120,49 +112,33 @@ def _substitute_labels(text: str, var: str, item: dict) -> str:
         return _val(raw)
     return _LABEL_RE.sub(_sub, text)
 
+
 def _render_template(text: str, var: str, item: dict) -> str:
-    """
-    Process `text` in the context of one iteration (var=item):
-      - recursively expand nested FOR_EACH blocks using fields from item
-      - substitute <<var.*>> labels
-    """
     result = []
     pos    = 0
-
     while pos < len(text):
         m = _OPEN_RE.search(text, pos)
         if m is None:
             result.append(text[pos:])
             break
-
-        # everything before this FOR_EACH
         result.append(text[pos:m.start()])
-
-        inner_var        = m.group(1)   # e.g. "bullet"
-        inner_collection = m.group(2)   # e.g. "bullets"
+        inner_var        = m.group(1)
+        inner_collection = m.group(2)
         body_start       = m.end()
-
         end_idx = _find_matching_end(text, body_start)
         body    = text[body_start:end_idx]
-
         collection = item.get(inner_collection, [])
         if not isinstance(collection, list):
             collection = []
-
         for sub_item in collection:
             if isinstance(sub_item, str):
                 sub_item = {"value": sub_item, "id": _short_id(sub_item[:40])}
             result.append(_render_template(body, inner_var, sub_item))
-
-        # skip past %%END_FOR%%
         pos = end_idx + len("%%END_FOR%%")
-
     rendered = "".join(result)
     rendered = _substitute_labels(rendered, var, item)
     return rendered
 
-
-# ── skills / education normalisers ────────────────────────────────────────────
 
 def _build_skill_rows(skills_raw) -> list:
     if isinstance(skills_raw, str):
@@ -186,51 +162,60 @@ def _normalise_education(items: list) -> list:
     out = []
     for edu in items:
         e = dict(edu)
-        e.setdefault("school", e.pop("institution", ""))
-        e.setdefault("date",   e.pop("end_date", e.pop("graduation_date", "")))
-        e.setdefault("field",  e.get("specialization", ""))
+        # handle both stamped {id, value} dicts and plain strings
+        if isinstance(e.get("school"), dict):
+            pass  # already stamped
+        else:
+            e.setdefault("school", e.pop("institution", ""))
+        e.setdefault("date", e.pop("end_date", e.pop("graduation_date", "")))
+        e.setdefault("field", e.get("specialization", ""))
         out.append(e)
     return out
 
 
-# ── main ──────────────────────────────────────────────────────────────────────
-
 def fill_template(cv_json: dict, profile: dict, template_name: str = "cv_temp1") -> str:
     tpl = load_template(template_name)
 
-    # 1. contact scalars
-    links = profile.get("links", [])
+    # ── 1. contact scalars — prefer cv_json["contact"], fall back to profile ──
+    contact = cv_json.get("contact", {})
 
-    def _find_link(*keywords):
-        for link in links:
-            if any(kw in link.lower() for kw in keywords):
-                return link
-        return ""
-
-    def _strip(url: str) -> str:
-        return url.replace("https://", "").replace("http://", "").rstrip("/")
-
-    linkedin  = _find_link("linkedin")
-    github    = _find_link("github")
-    portfolio = _find_link("vercel", "portfolio")
+    def _get_contact(key: str, profile_key: str = None) -> str:
+        val = contact.get(key, "")
+        if not val and profile_key:
+            val = profile.get(profile_key, "")
+        return _sanitize_latex_text(_escape_latex(str(val))) if val else "\\,"
 
     contact_scalars = {
-        "contact_name":          profile.get("display_name", ""),
-        "contact_phone":         profile.get("phone", ""),
-        "contact_email_raw":     profile.get("email", ""),
-        "contact_email":         profile.get("email", ""),
-        "contact_linkedin_url":  linkedin,
-        "contact_linkedin":      _strip(linkedin),
-        "contact_github_url":    github,
-        "contact_github":        _strip(github),
-        "contact_portfolio_url": portfolio,
-        "contact_portfolio":     _strip(portfolio),
+        "contact_name":          contact.get("name") or profile.get("display_name", ""),
+        "contact_phone":         contact.get("phone") or profile.get("phone", ""),
+        "contact_email":         contact.get("email") or profile.get("email", ""),
+        "contact_email_raw":     contact.get("email") or profile.get("email", ""),
+        "contact_linkedin":      contact.get("linkedin", ""),
+        "contact_linkedin_url":  contact.get("linkedin_url", ""),
+        "contact_github":        contact.get("github", ""),
+        "contact_github_url":    contact.get("github_url", ""),
+        "contact_portfolio":     contact.get("portfolio", ""),
+        "contact_portfolio_url": contact.get("portfolio_url", ""),
     }
 
     for key, val in contact_scalars.items():
-        tpl = tpl.replace(f"<<{key}>>", val)
+        safe = _sanitize_latex_text(_escape_latex(str(val))) if val else ""
+        tpl = tpl.replace(f"<<{key}>>", safe)
 
-    # 2. section loops — use the nested-aware parser
+    # ── 2. section titles — from cv_json["section_titles"] with defaults ──
+    section_titles = cv_json.get("section_titles", {})
+    title_defaults = {
+        "education":  "Education",
+        "experience": "Experience",
+        "skills":     "Skills",
+        "projects":   "Projects",
+    }
+    for key, default in title_defaults.items():
+        val = section_titles.get(key, default)
+        safe = _sanitize_latex_text(_escape_latex(str(val)))
+        tpl = tpl.replace(f"<<section_{key}>>", safe)
+
+    # ── 3. section loops ──
     normalised_cv = dict(cv_json)
     normalised_cv["education"] = _normalise_education(cv_json.get("education", []))
 
@@ -242,35 +227,27 @@ def fill_template(cv_json: dict, profile: dict, template_name: str = "cv_temp1")
         if m is None:
             result.append(tpl[pos:])
             break
-
         result.append(tpl[pos:m.start()])
-
         var             = m.group(1)
         collection_name = m.group(2)
         body_start      = m.end()
-
         end_idx = _find_matching_end(tpl, body_start)
         body    = tpl[body_start:end_idx]
-
         if collection_name == "skills":
             collection = _build_skill_rows(normalised_cv.get("skills", ""))
         else:
             collection = normalised_cv.get(collection_name, [])
             if not isinstance(collection, list):
                 collection = []
-
         for item in collection:
             result.append(_render_template(body, var, item))
-
         pos = end_idx + len("%%END_FOR%%")
 
     tpl = "".join(result)
 
-    # 3. warn on any remaining unfilled labels
     leftover = _LABEL_RE.findall(tpl)
     if leftover:
         import sys
         print(f"[fill_template] WARNING: unfilled labels: {leftover}", file=sys.stderr)
 
     return tpl
-

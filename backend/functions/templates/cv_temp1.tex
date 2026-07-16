@@ -30,25 +30,25 @@
 \begin{document}
 
 %% ── Education ────────────────────────────────────────────────────────────────
-\begin{rSection}{Education}
+\begin{rSection}{<<section_education>>}
 %%FOR_EACH edu IN education%%
-{\fontsize{11}{15}\bf \tagged{<<edu.school.id>>}{<<edu.school.value>>}} \hfill \, \\
-{\fontsize{10}{12} \tagged{<<edu.degree.id>>}{<<edu.degree.value>>}} \hfill {\small \tagged{<<edu.date.id>>}{<<edu.date.value>>}} \\
-{\fontsize{9}{12}\selectfont \tagged{<<edu.field.id>>}{<<edu.field.value>>}}
+{\fontsize{11}{15}\bf <<edu.school.value>>} \hfill \, \\
+{\fontsize{10}{12} <<edu.degree.value>>} \hfill {\small <<edu.date.value>>} \\
+{\fontsize{9}{12}\selectfont <<edu.field.value>>}
 %%END_FOR%%
 \end{rSection}
 
 %% ── Experience ───────────────────────────────────────────────────────────────
-\begin{rSection}{Experience}
+\begin{rSection}{<<section_experience>>}
 %%FOR_EACH exp IN experiences%%
 \begin{rSubsection}
-  {\tagged{<<exp.company.id>>}{<<exp.company.value>>}}
-  {\small \tagged{<<exp.date.id>>}{<<exp.date.value>>}}
-  {\tagged{<<exp.title.id>>}{<<exp.title.value>>}}
+  {<<exp.company.value>>}
+  {\small <<exp.date.value>>}
+  {<<exp.title.value>>}
   { }
 {\fontsize{10}{12}\selectfont
 %%FOR_EACH bullet IN bullets%%
-  \item \tagged{<<bullet.id>>}{<<bullet.value>>}
+  \item <<bullet.value>>
 %%END_FOR%%
 }
 \end{rSubsection}
@@ -58,11 +58,11 @@
 
 %% ── Skills ───────────────────────────────────────────────────────────────────
 \vspace{-2mm}
-\begin{rSection}{Skills}
+\begin{rSection}{<<section_skills>>}
 {\fontsize{9.5}{13}\selectfont
 \begin{tabular}{ @{} >{\bfseries}l @{\hspace{4ex}} p{0.69\textwidth} }
 %%FOR_EACH row IN skills%%
-\tagged{<<row.id>>-label}{<<row.label>>} & \tagged{<<row.id>>-value}{<<row.value>>} \\
+<<row.label>> & <<row.value>> \\
 %%END_FOR%%
 \end{tabular}
 }
@@ -70,14 +70,14 @@
 
 %% ── Projects ─────────────────────────────────────────────────────────────────
 \vspace{-2mm}
-\begin{rSection}{Projects}
+\begin{rSection}{<<section_projects>>}
 \vspace{-1mm}
 %%FOR_EACH proj IN projects%%
 \fontsize{10}{12}\begin{rSubsection}
-  {\tagged{<<proj.name.id>>}{<<proj.name.value>>}}{}{}{}
+  {<<proj.name.value>>}{}{}{}
 {\fontsize{9}{12}\selectfont
 %%FOR_EACH bullet IN bullets%%
-  \item \tagged{<<bullet.id>>}{<<bullet.value>>}
+  \item <<bullet.value>>
 %%END_FOR%%
 }
 \end{rSubsection}
