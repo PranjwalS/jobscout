@@ -16,35 +16,32 @@ def load_template(template_name: str) -> str:
 
 _LATEX_SPECIAL_CHARS = {
     "\\": r"\textbackslash{}",
-    "&": r"\&",
-    "%": r"\%",
-    "$": r"\$",
-    "#": r"\#",
-    "_": r"\_",
-    "{": r"\{",
-    "}": r"\}",
-    "~": r"\textasciitilde{}",
-    "^": r"\textasciicircum{}",
+    "&":  r"\&",
+    "%":  r"\%",
+    "$":  r"\$",
+    "#":  r"\#",
+    "_":  r"\_",
+    "{":  r"\{",
+    "}":  r"\}",
+    "~":  r"\textasciitilde{}",
+    "^":  r"\textasciicircum{}",
 }
+
 
 def _sanitize_latex_text(text: str) -> str:
     replacements = {
-        "\u2011": "-",
-        "\u2013": "--",
-        "\u2014": "---",
-        "\u2018": "'", "\u2019": "'",
-        "\u201c": '"', "\u201d": '"',
-        "\u2026": "...",
-        "\u202f": " ",
-        "\u00a0": " ",
-        "\u200b": "",
-        "\u2022": r"\textbullet",
+        "\u2011": "-",  "\u2013": "--",   "\u2014": "---",
+        "\u2018": "'",  "\u2019": "'",
+        "\u201c": '"',  "\u201d": '"',
+        "\u2026": "...","\u202f": " ",    "\u00a0": " ",
+        "\u200b": "",   "\u2022": r"\textbullet",
         "\u00b7": r"\cdot",
     }
     for bad, good in replacements.items():
         text = text.replace(bad, good)
     text = text.encode("ascii", errors="ignore").decode("ascii")
     return text
+
 
 def _escape_latex(text: str) -> str:
     text = text.replace("\\", _LATEX_SPECIAL_CHARS["\\"])
@@ -54,7 +51,9 @@ def _escape_latex(text: str) -> str:
         text = text.replace(ch, repl)
     return text
 
+
 def _val(field) -> str:
+    """Extract and escape a value from either a plain string or {id, value} dict."""
     if isinstance(field, dict):
         raw = str(field.get("value", ""))
     else:
@@ -62,6 +61,7 @@ def _val(field) -> str:
     raw = _sanitize_latex_text(raw)
     raw = _escape_latex(raw)
     return raw if raw.strip() else "\\,"
+
 
 def _short_id(seed: str) -> str:
     return hashlib.md5(seed.encode()).hexdigest()[:8]
@@ -97,10 +97,9 @@ def _substitute_labels(text: str, var: str, item: dict) -> str:
         parts = label.split(".", 1)
         if parts[0] != var:
             return m.group(0)
-        key = parts[1] if len(parts) > 1 else parts[0]
-        # support nested dot access e.g. <<edu.school.id>>, <<edu.school.value>>
+        key  = parts[1] if len(parts) > 1 else parts[0]
         keys = key.split(".")
-        raw = item
+        raw  = item
         for k in keys:
             if isinstance(raw, dict):
                 raw = raw.get(k, "")
@@ -158,38 +157,17 @@ def _build_skill_rows(skills_raw) -> list:
     return []
 
 
-def _normalise_education(items: list) -> list:
-    out = []
-    for edu in items:
-        e = dict(edu)
-        # handle both stamped {id, value} dicts and plain strings
-        if isinstance(e.get("school"), dict):
-            pass  # already stamped
-        else:
-            e.setdefault("school", e.pop("institution", ""))
-        e.setdefault("date", e.pop("end_date", e.pop("graduation_date", "")))
-        e.setdefault("field", e.get("specialization", ""))
-        out.append(e)
-    return out
-
-
 def fill_template(cv_json: dict, profile: dict, template_name: str = "cv_temp1") -> str:
     tpl = load_template(template_name)
 
-    # ── 1. contact scalars — prefer cv_json["contact"], fall back to profile ──
+    # ── 1. contact scalars ─────────────────────────────────────────────────────
     contact = cv_json.get("contact", {})
 
-    def _get_contact(key: str, profile_key: str = None) -> str:
-        val = contact.get(key, "")
-        if not val and profile_key:
-            val = profile.get(profile_key, "")
-        return _sanitize_latex_text(_escape_latex(str(val))) if val else "\\,"
-
     contact_scalars = {
-        "contact_name":          contact.get("name") or profile.get("display_name", ""),
-        "contact_phone":         contact.get("phone") or profile.get("phone", ""),
-        "contact_email":         contact.get("email") or profile.get("email", ""),
-        "contact_email_raw":     contact.get("email") or profile.get("email", ""),
+        "contact_name":          contact.get("name", ""),
+        "contact_phone":         contact.get("phone", ""),
+        "contact_email":         contact.get("email", ""),
+        "contact_email_raw":     contact.get("email", ""),
         "contact_linkedin":      contact.get("linkedin", ""),
         "contact_linkedin_url":  contact.get("linkedin_url", ""),
         "contact_github":        contact.get("github", ""),
@@ -197,12 +175,13 @@ def fill_template(cv_json: dict, profile: dict, template_name: str = "cv_temp1")
         "contact_portfolio":     contact.get("portfolio", ""),
         "contact_portfolio_url": contact.get("portfolio_url", ""),
     }
-
     for key, val in contact_scalars.items():
         safe = _sanitize_latex_text(_escape_latex(str(val))) if val else ""
         tpl = tpl.replace(f"<<{key}>>", safe)
 
-    # ── 2. section titles — from cv_json["section_titles"] with defaults ──
+    # ── 2. section titles ──────────────────────────────────────────────────────
+    # cv_json["section_titles"] = {"education": "Education", "experience": "Experience", ...}
+    # Template uses <<section_education>>, <<section_experience>>, etc.
     section_titles = cv_json.get("section_titles", {})
     title_defaults = {
         "education":  "Education",
@@ -211,14 +190,11 @@ def fill_template(cv_json: dict, profile: dict, template_name: str = "cv_temp1")
         "projects":   "Projects",
     }
     for key, default in title_defaults.items():
-        val = section_titles.get(key, default)
+        val  = section_titles.get(key, default)
         safe = _sanitize_latex_text(_escape_latex(str(val)))
-        tpl = tpl.replace(f"<<section_{key}>>", safe)
+        tpl  = tpl.replace(f"<<section_{key}>>", safe)
 
-    # ── 3. section loops ──
-    normalised_cv = dict(cv_json)
-    normalised_cv["education"] = _normalise_education(cv_json.get("education", []))
-
+    # ── 3. section loops ───────────────────────────────────────────────────────
     result = []
     pos    = 0
 
@@ -233,12 +209,14 @@ def fill_template(cv_json: dict, profile: dict, template_name: str = "cv_temp1")
         body_start      = m.end()
         end_idx = _find_matching_end(tpl, body_start)
         body    = tpl[body_start:end_idx]
+
         if collection_name == "skills":
-            collection = _build_skill_rows(normalised_cv.get("skills", ""))
+            collection = _build_skill_rows(cv_json.get("skills", ""))
         else:
-            collection = normalised_cv.get(collection_name, [])
+            collection = cv_json.get(collection_name, [])
             if not isinstance(collection, list):
                 collection = []
+
         for item in collection:
             result.append(_render_template(body, var, item))
         pos = end_idx + len("%%END_FOR%%")

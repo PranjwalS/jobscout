@@ -587,7 +587,7 @@ def cv_generator(user_job: dict=Depends(get_owned_user_job), current_user=Depend
     job = supabase_admin.table("jobs").select("*").eq("id", user_job["job_id"]).single().execute().data
 
     selected: dict = cv_selector(job, current_user)
-    stamped: dict = stamp_cv_ids(selected)
+    stamped: dict = stamp_cv_ids(selected, current_user)
     
     tex_source = fill_template(stamped, current_user)
     with open("debug_output.tex", "w", encoding="utf-8") as f:
@@ -623,9 +623,9 @@ def cv_get(user_job: dict=Depends(get_owned_user_job), current_user=Depends(get_
  
 @app.put("/custom_cv/edit")
 def cv_edit(cv_json: dict, user_job: dict=Depends(get_owned_user_job), current_user=Depends(get_current_user)):
-    stamped = stamp_cv_ids(cv_json)
+    # stamped = stamp_cv_ids(cv_json, current_user)
     
-    tex_source = fill_template(stamped, current_user)
+    tex_source = fill_template(cv_json, current_user)
     print("here")
     try:
         pdf_bytes = compile_cv_pdf(tex_source)
@@ -643,11 +643,11 @@ def cv_edit(cv_json: dict, user_job: dict=Depends(get_owned_user_job), current_u
 
     ## make supabase storage
     supabase_admin.table("user_jobs").update({
-        "cv_json": stamped,
+        "cv_json": cv_json,
         "cv_pdf_url": pdf_url,
     }).eq("id", user_job['id']).execute()
 
-    return {"status": "ok", "user_job_id":user_job['id'], "cv_text": stamped, "cv_pdf_url": pdf_url}
+    return {"status": "ok", "user_job_id":user_job['id'], "cv_text": cv_json, "cv_pdf_url": pdf_url}
  
 
 

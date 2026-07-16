@@ -109,28 +109,36 @@ def _find_link(links: list, *keywords) -> str:
             return link
     return ""
 
+
 def _strip_url(url: str) -> str:
     return url.replace("https://", "").replace("http://", "").rstrip("/")
+
+
+def _plain(val) -> str:
+    """Extract plain string from either a raw string or a stamped {id, value} dict."""
+    if isinstance(val, dict):
+        return val.get("value", "")
+    return val or ""
 
 
 def stamp_cv_ids(cv: dict, profile: dict | None = None) -> dict:
     cv = strip_ids(cv)
 
-    # ── contact block (injected from profile if provided, else preserve existing) ──
+    # ── contact block ──────────────────────────────────────────────────────────
     if profile is not None:
         links = profile.get("links", [])
         linkedin  = _find_link(links, "linkedin")
         github    = _find_link(links, "github")
         portfolio = _find_link(links, "vercel", "portfolio")
         cv["contact"] = {
-            "name":      profile.get("display_name", ""),
-            "email":     profile.get("email", ""),
-            "phone":     profile.get("phone", ""),
-            "linkedin":  _strip_url(linkedin),
-            "linkedin_url": linkedin,
-            "github":    _strip_url(github),
-            "github_url": github,
-            "portfolio": _strip_url(portfolio),
+            "name":          profile.get("display_name", ""),
+            "email":         profile.get("email", ""),
+            "phone":         profile.get("phone", ""),
+            "linkedin":      _strip_url(linkedin),
+            "linkedin_url":  linkedin,
+            "github":        _strip_url(github),
+            "github_url":    github,
+            "portfolio":     _strip_url(portfolio),
             "portfolio_url": portfolio,
         }
     elif "contact" not in cv:
@@ -141,49 +149,53 @@ def stamp_cv_ids(cv: dict, profile: dict | None = None) -> dict:
             "portfolio": "", "portfolio_url": "",
         }
 
-    # ── section titles (preserve existing edits, set defaults if missing) ──
-    if "section_titles" not in cv:
-        cv["section_titles"] = {
-            "education":  "Education",
-            "experience": "Experience",
-            "skills":     "Skills",
-            "projects":   "Projects",
-        }
-    else:
-        # fill any missing keys with defaults
-        defaults = {"education": "Education", "experience": "Experience", "skills": "Skills", "projects": "Projects"}
-        for k, v in defaults.items():
-            cv["section_titles"].setdefault(k, v)
+    # ── section titles ─────────────────────────────────────────────────────────
+    # Keys are fixed; values are what the user sees/edits and what goes in the template.
+    defaults = {
+        "education":  "Education",
+        "experience": "Experience",
+        "skills":     "Skills",
+        "projects":   "Projects",
+    }
+    existing = cv.get("section_titles", {})
+    cv["section_titles"] = {k: existing.get(k, v) for k, v in defaults.items()}
 
-    # ── experiences ──
+    # ── experiences ────────────────────────────────────────────────────────────
     for exp in cv.get("experiences", []):
         eid = str(uuid.uuid4())[:8]
         exp["id"]      = eid
-        exp["title"]   = {"id": f"experience-{eid}-title",   "value": exp.get("title", "")}
-        exp["company"] = {"id": f"experience-{eid}-company",  "value": exp.get("company", "")}
-        exp["date"]    = {"id": f"experience-{eid}-date",     "value": exp.get("date", "")}
+        exp["title"]   = {"id": f"experience-{eid}-title",   "value": _plain(exp.get("title",   ""))}
+        exp["company"] = {"id": f"experience-{eid}-company",  "value": _plain(exp.get("company", ""))}
+        exp["date"]    = {"id": f"experience-{eid}-date",     "value": _plain(exp.get("date",    ""))}
         exp["bullets"] = [
-            {"id": f"experience-{eid}-b{i+1}", "value": b if isinstance(b, str) else b.get("value", "")}
+            {"id": f"experience-{eid}-b{i+1}", "value": _plain(b)}
             for i, b in enumerate(exp.get("bullets", []))
         ]
 
-    # ── projects ──
+    # ── projects ───────────────────────────────────────────────────────────────
     for proj in cv.get("projects", []):
         pid = str(uuid.uuid4())[:8]
         proj["id"]      = pid
-        proj["name"]    = {"id": f"proj-{pid}-name",  "value": proj.get("name", "")}
-        proj["date"]    = {"id": f"proj-{pid}-date",  "value": proj.get("date", "")}
+        proj["name"]    = {"id": f"proj-{pid}-name", "value": _plain(proj.get("name", ""))}
+        proj["date"]    = {"id": f"proj-{pid}-date", "value": _plain(proj.get("date", ""))}
         proj["bullets"] = [
-            {"id": f"proj-{pid}-b{i+1}", "value": b if isinstance(b, str) else b.get("value", "")}
+            {"id": f"proj-{pid}-b{i+1}", "value": _plain(b)}
             for i, b in enumerate(proj.get("bullets", []))
         ]
 
-    # ── education ──
+    # ── education ──────────────────────────────────────────────────────────────
     for edu in cv.get("education", []):
         edid = str(uuid.uuid4())[:8]
         edu["id"]     = edid
-        edu["school"] = {"id": f"educ-{edid}-school", "value": edu.get("institution", edu.get("school", {}).get("value", edu.get("school", "")) if isinstance(edu.get("school"), dict) else edu.get("school", ""))}
-        edu["degree"] = {"id": f"educ-{edid}-degree", "value": edu.get("degree", {}).get("value", edu.get("degree", "")) if isinstance(edu.get("degree"), dict) else edu.get("degree", "")}
-        edu["date"]   = {"id": f"educ-{edid}-date",   "value": edu.get("end_date", edu.get("date", {}).get("value", edu.get("date", "")) if isinstance(edu.get("date"), dict) else edu.get("date", ""))}
+        # LLM may return: institution, school (plain str), or already-stamped {value:...}
+        school_val = _plain(edu.get("school") or edu.get("institution") or "")
+        degree_val = _plain(edu.get("degree", ""))
+        date_val   = _plain(edu.get("end_date") or edu.get("date") or "")
+        field_val  = _plain(edu.get("field") or edu.get("specialization") or "")
+
+        edu["school"] = {"id": f"educ-{edid}-school", "value": school_val}
+        edu["degree"] = {"id": f"educ-{edid}-degree", "value": degree_val}
+        edu["date"]   = {"id": f"educ-{edid}-date",   "value": date_val}
+        edu["field"]  = {"id": f"educ-{edid}-field",  "value": field_val}
 
     return cv

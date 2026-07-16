@@ -9,21 +9,21 @@ function tok() { return localStorage.getItem("token") || ""; }
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-interface StampedField { id: string; value: string; }
+interface StampedField  { id: string; value: string; }
 interface StampedBullet { id: string; value: string; }
 
 interface StampedExperience {
   id: string;
-  title: StampedField;
+  title:   StampedField;
   company: StampedField;
-  date: StampedField;
+  date:    StampedField;
   bullets: StampedBullet[];
 }
 
 interface StampedProject {
   id: string;
-  name: StampedField;
-  date: StampedField;
+  name:    StampedField;
+  date:    StampedField;
   bullets: StampedBullet[];
 }
 
@@ -31,42 +31,44 @@ interface StampedEducation {
   id: string;
   school: StampedField;
   degree: StampedField;
-  date: StampedField;
+  date:   StampedField;
+  field:  StampedField;
 }
 
+// Contact and section titles are plain string dicts — no stamping needed.
 interface Contact {
-  name: string;
-  email: string;
-  phone: string;
-  linkedin: string;
-  linkedin_url: string;
-  github: string;
-  github_url: string;
-  portfolio: string;
+  name:          string;
+  email:         string;
+  phone:         string;
+  linkedin:      string;
+  linkedin_url:  string;
+  github:        string;
+  github_url:    string;
+  portfolio:     string;
   portfolio_url: string;
 }
 
 interface SectionTitles {
-  education: string;
+  education:  string;
   experience: string;
-  skills: string;
-  projects: string;
+  skills:     string;
+  projects:   string;
 }
 
 interface CvJson {
-  contact: Contact;
+  contact:        Contact;
   section_titles: SectionTitles;
-  experiences: StampedExperience[];
-  projects: StampedProject[];
-  education: StampedEducation[];
-  skills: string;
+  experiences:    StampedExperience[];
+  projects:       StampedProject[];
+  education:      StampedEducation[];
+  skills:         string;
 }
 
 // ─── Drag state ───────────────────────────────────────────────────────────────
 
 interface DragState {
-  section: "experiences" | "projects" | "education";
-  entryId: string;
+  section:   "experiences" | "projects" | "education";
+  entryId:   string;
   bulletIdx?: number;
 }
 
@@ -93,7 +95,9 @@ function EditableSpan({
       data-placeholder={placeholder}
       onFocus={() => setFocused(true)}
       onBlur={(e) => { setFocused(false); onChange(e.currentTarget.textContent || ""); }}
-      onKeyDown={(e) => { if (!multiline && e.key === "Enter") { e.preventDefault(); (e.currentTarget as HTMLElement).blur(); } }}
+      onKeyDown={(e) => {
+        if (!multiline && e.key === "Enter") { e.preventDefault(); (e.currentTarget as HTMLElement).blur(); }
+      }}
       className={`outline-none focus:bg-blue-50 focus:ring-1 focus:ring-blue-300 rounded px-0.5 min-w-[40px] inline-block empty:before:content-[attr(data-placeholder)] empty:before:text-zinc-300 ${className}`}
     />
   );
@@ -104,11 +108,11 @@ function EditableSpan({
 function SectionHeader({
   titleKey, titles, onTitleChange, collapsed, onToggle,
 }: {
-  titleKey: keyof SectionTitles;
-  titles: SectionTitles;
+  titleKey:      keyof SectionTitles;
+  titles:        SectionTitles;
   onTitleChange: (key: keyof SectionTitles, v: string) => void;
-  collapsed: boolean;
-  onToggle: () => void;
+  collapsed:     boolean;
+  onToggle:      () => void;
 }) {
   return (
     <div className="flex items-center gap-2 mb-3">
@@ -122,7 +126,9 @@ function SectionHeader({
         <span className="text-[9px] text-zinc-300 italic">(editable)</span>
       </div>
       <button onClick={onToggle} className="p-1 hover:bg-zinc-100 rounded transition-colors">
-        {collapsed ? <ChevronDown size={14} className="text-zinc-400" /> : <ChevronUp size={14} className="text-zinc-400" />}
+        {collapsed
+          ? <ChevronDown size={14} className="text-zinc-400" />
+          : <ChevronUp   size={14} className="text-zinc-400" />}
       </button>
     </div>
   );
@@ -133,15 +139,15 @@ function SectionHeader({
 export function CvEditorModal({
   userJobId, initialCvJson, onClose, onSaved,
 }: {
-  userJobId: string;
+  userJobId:    string;
   initialCvJson: CvJson;
-  onClose: () => void;
-  onSaved: (newCvJson: CvJson, pdfUrl: string) => void;
+  onClose:      () => void;
+  onSaved:      (newCvJson: CvJson, pdfUrl: string) => void;
 }) {
-  const [cv, setCv] = useState<CvJson>(JSON.parse(JSON.stringify(initialCvJson)));
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState("");
-  const [drag, setDrag] = useState<DragState | null>(null);
+  const [cv, setCv]           = useState<CvJson>(JSON.parse(JSON.stringify(initialCvJson)));
+  const [saving, setSaving]   = useState(false);
+  const [error, setError]     = useState("");
+  const [drag, setDrag]       = useState<DragState | null>(null);
   const [dragOver, setDragOver] = useState<{ section: string; entryId?: string; bulletIdx?: number } | null>(null);
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
 
@@ -149,13 +155,13 @@ export function CvEditorModal({
     setCollapsed((c) => ({ ...c, [key]: !c[key] }));
   }
 
-  // ── contact ───────────────────────────────────────────────────────────────
+  // ── contact (plain strings) ───────────────────────────────────────────────
 
   function updateContact(patch: Partial<Contact>) {
     setCv((c) => ({ ...c, contact: { ...c.contact, ...patch } }));
   }
 
-  // ── section titles ────────────────────────────────────────────────────────
+  // ── section titles (plain strings) ────────────────────────────────────────
 
   function updateSectionTitle(key: keyof SectionTitles, value: string) {
     setCv((c) => ({ ...c, section_titles: { ...c.section_titles, [key]: value } }));
@@ -164,7 +170,7 @@ export function CvEditorModal({
   // ── experiences ───────────────────────────────────────────────────────────
 
   function updateExp(id: string, patch: Partial<StampedExperience>) {
-    setCv((c) => ({ ...c, experiences: c.experiences.map((e) => (e.id === id ? { ...e, ...patch } : e)) }));
+    setCv((c) => ({ ...c, experiences: c.experiences.map((e) => e.id === id ? { ...e, ...patch } : e) }));
   }
   function removeExp(id: string) {
     setCv((c) => ({ ...c, experiences: c.experiences.filter((e) => e.id !== id) }));
@@ -174,7 +180,7 @@ export function CvEditorModal({
     setCv((c) => ({
       ...c,
       experiences: [...c.experiences, {
-        id: eid,
+        id:      eid,
         title:   { id: `experience-${eid}-title`,   value: "" },
         company: { id: `experience-${eid}-company`, value: "" },
         date:    { id: `experience-${eid}-date`,    value: "" },
@@ -202,7 +208,7 @@ export function CvEditorModal({
     setCv((c) => ({
       ...c,
       experiences: c.experiences.map((e) =>
-        e.id === expId ? { ...e, bullets: e.bullets.map((b, i) => (i === bi ? { ...b, value } : b)) } : e
+        e.id === expId ? { ...e, bullets: e.bullets.map((b, i) => i === bi ? { ...b, value } : b) } : e
       ),
     }));
   }
@@ -210,7 +216,7 @@ export function CvEditorModal({
   // ── projects ──────────────────────────────────────────────────────────────
 
   function updateProj(id: string, patch: Partial<StampedProject>) {
-    setCv((c) => ({ ...c, projects: c.projects.map((p) => (p.id === id ? { ...p, ...patch } : p)) }));
+    setCv((c) => ({ ...c, projects: c.projects.map((p) => p.id === id ? { ...p, ...patch } : p) }));
   }
   function removeProj(id: string) {
     setCv((c) => ({ ...c, projects: c.projects.filter((p) => p.id !== id) }));
@@ -220,7 +226,7 @@ export function CvEditorModal({
     setCv((c) => ({
       ...c,
       projects: [...c.projects, {
-        id: pid,
+        id:      pid,
         name:    { id: `proj-${pid}-name`, value: "" },
         date:    { id: `proj-${pid}-date`, value: "" },
         bullets: [],
@@ -247,7 +253,7 @@ export function CvEditorModal({
     setCv((c) => ({
       ...c,
       projects: c.projects.map((p) =>
-        p.id === projId ? { ...p, bullets: p.bullets.map((b, i) => (i === bi ? { ...b, value } : b)) } : p
+        p.id === projId ? { ...p, bullets: p.bullets.map((b, i) => i === bi ? { ...b, value } : b) } : p
       ),
     }));
   }
@@ -255,7 +261,7 @@ export function CvEditorModal({
   // ── education ─────────────────────────────────────────────────────────────
 
   function updateEdu(id: string, patch: Partial<StampedEducation>) {
-    setCv((c) => ({ ...c, education: c.education.map((e) => (e.id === id ? { ...e, ...patch } : e)) }));
+    setCv((c) => ({ ...c, education: c.education.map((e) => e.id === id ? { ...e, ...patch } : e) }));
   }
   function removeEdu(id: string) {
     setCv((c) => ({ ...c, education: c.education.filter((e) => e.id !== id) }));
@@ -265,10 +271,11 @@ export function CvEditorModal({
     setCv((c) => ({
       ...c,
       education: [...c.education, {
-        id: edid,
+        id:     edid,
         school: { id: `educ-${edid}-school`, value: "" },
         degree: { id: `educ-${edid}-degree`, value: "" },
         date:   { id: `educ-${edid}-date`,   value: "" },
+        field:  { id: `educ-${edid}-field`,  value: "" },
       }],
     }));
   }
@@ -278,7 +285,7 @@ export function CvEditorModal({
   function handleEntryDrop(section: DragState["section"], targetId: string) {
     if (!drag || drag.section !== section || drag.entryId === targetId) { setDrag(null); return; }
     setCv((c) => {
-      const arr = [...(c[section] as any[])];
+      const arr     = [...(c[section] as any[])];
       const fromIdx = arr.findIndex((x: any) => x.id === drag.entryId);
       const toIdx   = arr.findIndex((x: any) => x.id === targetId);
       const [moved] = arr.splice(fromIdx, 1);
@@ -326,9 +333,9 @@ export function CvEditorModal({
     setSaving(true); setError("");
     try {
       const res = await fetch(`${API}/custom_cv/edit?user_job_id=${userJobId}`, {
-        method: "PUT",
+        method:  "PUT",
         headers: { Authorization: `Bearer ${tok()}`, "Content-Type": "application/json" },
-        body: JSON.stringify(cv),
+        body:    JSON.stringify(cv),
       });
       if (!res.ok) { const d = await res.json(); throw new Error(d.detail || "Save failed"); }
       const data = await res.json();
@@ -350,15 +357,15 @@ export function CvEditorModal({
     return () => window.removeEventListener("keydown", handler);
   }, [cv]);
 
-  // ── bullet list renderer (shared) ─────────────────────────────────────────
+  // ── bullet list renderer ──────────────────────────────────────────────────
 
   function BulletList({
     section, entryId, bullets, onAdd, onRemove, onUpdate,
   }: {
-    section: "experiences" | "projects";
-    entryId: string;
-    bullets: StampedBullet[];
-    onAdd: () => void;
+    section:  "experiences" | "projects";
+    entryId:  string;
+    bullets:  StampedBullet[];
+    onAdd:    () => void;
     onRemove: (i: number) => void;
     onUpdate: (i: number, v: string) => void;
   }) {
@@ -369,11 +376,13 @@ export function CvEditorModal({
             key={b.id}
             draggable
             onDragStart={(e) => { e.stopPropagation(); setDrag({ section, entryId, bulletIdx: bi }); }}
-            onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); setDragOver({ section, entryId, bulletIdx: bi }); }}
-            onDrop={(e) => { e.stopPropagation(); handleBulletDrop(section, entryId, bi); }}
-            onDragEnd={() => { setDrag(null); setDragOver(null); }}
+            onDragOver={(e)  => { e.preventDefault(); e.stopPropagation(); setDragOver({ section, entryId, bulletIdx: bi }); }}
+            onDrop={(e)      => { e.stopPropagation(); handleBulletDrop(section, entryId, bi); }}
+            onDragEnd={()    => { setDrag(null); setDragOver(null); }}
             className={`flex items-start gap-2 group rounded-lg px-2 py-1 transition-all ${
-              dragOver?.entryId === entryId && dragOver?.bulletIdx === bi ? "bg-blue-50 ring-1 ring-blue-200" : "hover:bg-zinc-50"
+              dragOver?.entryId === entryId && dragOver?.bulletIdx === bi
+                ? "bg-blue-50 ring-1 ring-blue-200"
+                : "hover:bg-zinc-50"
             }`}
           >
             <GripVertical size={12} className="text-zinc-200 group-hover:text-zinc-400 mt-1 shrink-0 cursor-grab active:cursor-grabbing" />
@@ -402,8 +411,8 @@ export function CvEditorModal({
 
   // ── render ────────────────────────────────────────────────────────────────
 
-  const contact = cv.contact ?? {};
-  const titles = cv.section_titles ?? { education: "Education", experience: "Experience", skills: "Skills", projects: "Projects" };
+  const contact = cv.contact ?? {} as Contact;
+  const titles  = cv.section_titles ?? { education: "Education", experience: "Experience", skills: "Skills", projects: "Projects" };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
@@ -433,21 +442,21 @@ export function CvEditorModal({
         {/* Body */}
         <div className="overflow-y-auto flex-1 px-6 py-5 space-y-8">
 
-          {/* Contact */}
+          {/* Contact — plain string fields */}
           <section>
             <div className="flex items-center gap-2 mb-3 border-b-2 border-zinc-900 pb-1">
               <User size={12} className="text-zinc-900" />
               <span className="text-[10px] font-bold text-zinc-900 uppercase tracking-widest">Contact</span>
             </div>
             <div className="grid grid-cols-2 gap-3">
-              {[
-                { label: "Name",      key: "name"      as keyof Contact },
-                { label: "Email",     key: "email"     as keyof Contact },
-                { label: "Phone",     key: "phone"     as keyof Contact },
-                { label: "LinkedIn",  key: "linkedin"  as keyof Contact },
-                { label: "GitHub",    key: "github"    as keyof Contact },
-                { label: "Portfolio", key: "portfolio" as keyof Contact },
-              ].map(({ label, key }) => (
+              {([
+                { label: "Name",      key: "name"      },
+                { label: "Email",     key: "email"     },
+                { label: "Phone",     key: "phone"     },
+                { label: "LinkedIn",  key: "linkedin"  },
+                { label: "GitHub",    key: "github"    },
+                { label: "Portfolio", key: "portfolio" },
+              ] as { label: string; key: keyof Contact }[]).map(({ label, key }) => (
                 <div key={key} className="border border-zinc-100 rounded-lg px-3 py-2">
                   <p className="text-[9px] text-zinc-400 uppercase tracking-wider mb-1">{label}</p>
                   <EditableSpan
@@ -474,16 +483,20 @@ export function CvEditorModal({
                     onDragOver={(e) => { e.preventDefault(); setDragOver({ section: "education", entryId: edu.id }); }}
                     onDrop={() => handleEntryDrop("education", edu.id)}
                     onDragEnd={() => { setDrag(null); setDragOver(null); }}
-                    className={`border rounded-xl p-4 space-y-2 transition-all ${dragOver?.section === "education" && dragOver?.entryId === edu.id ? "border-blue-300 bg-blue-50" : "border-zinc-100"}`}
+                    className={`border rounded-xl p-4 space-y-2 transition-all ${
+                      dragOver?.section === "education" && dragOver?.entryId === edu.id
+                        ? "border-blue-300 bg-blue-50" : "border-zinc-100"
+                    }`}
                   >
                     <div className="flex items-start gap-2">
                       <GripVertical size={14} className="text-zinc-300 mt-0.5 shrink-0 cursor-grab" />
                       <div className="flex-1 space-y-1.5">
                         <div className="flex items-center gap-2">
-                          <EditableSpan value={edu.school.value} onChange={(v) => updateEdu(edu.id, { school: { ...edu.school, value: v } })} placeholder="School" className="text-sm font-semibold text-zinc-900 flex-1" />
-                          <EditableSpan value={edu.date.value} onChange={(v) => updateEdu(edu.id, { date: { ...edu.date, value: v } })} placeholder="Date" className="text-xs text-zinc-400" />
+                          <EditableSpan value={edu.school.value} onChange={(v) => updateEdu(edu.id, { school: { ...edu.school, value: v } })} placeholder="School"  className="text-sm font-semibold text-zinc-900 flex-1" />
+                          <EditableSpan value={edu.date.value}   onChange={(v) => updateEdu(edu.id, { date:   { ...edu.date,   value: v } })} placeholder="Date"    className="text-xs text-zinc-400" />
                         </div>
-                        <EditableSpan value={edu.degree.value} onChange={(v) => updateEdu(edu.id, { degree: { ...edu.degree, value: v } })} placeholder="Degree" className="text-xs text-zinc-600" />
+                        <EditableSpan value={edu.degree.value} onChange={(v) => updateEdu(edu.id, { degree: { ...edu.degree, value: v } })} placeholder="Degree"  className="text-xs text-zinc-600" />
+                        <EditableSpan value={edu.field.value}  onChange={(v) => updateEdu(edu.id, { field:  { ...edu.field,  value: v } })} placeholder="Field / specialization" className="text-xs text-zinc-400 italic" />
                       </div>
                       <button onClick={() => removeEdu(edu.id)} className="p-1 hover:bg-red-50 rounded text-zinc-300 hover:text-red-400 transition-colors shrink-0">
                         <Trash2 size={13} />
@@ -511,14 +524,17 @@ export function CvEditorModal({
                     onDragOver={(e) => { e.preventDefault(); setDragOver({ section: "experiences", entryId: exp.id }); }}
                     onDrop={() => handleEntryDrop("experiences", exp.id)}
                     onDragEnd={() => { setDrag(null); setDragOver(null); }}
-                    className={`border rounded-xl p-4 space-y-3 transition-all ${dragOver?.section === "experiences" && dragOver?.entryId === exp.id ? "border-blue-300 bg-blue-50" : "border-zinc-100"}`}
+                    className={`border rounded-xl p-4 space-y-3 transition-all ${
+                      dragOver?.section === "experiences" && dragOver?.entryId === exp.id
+                        ? "border-blue-300 bg-blue-50" : "border-zinc-100"
+                    }`}
                   >
                     <div className="flex items-start gap-2">
                       <GripVertical size={14} className="text-zinc-300 mt-0.5 shrink-0 cursor-grab active:cursor-grabbing" />
                       <div className="flex-1 space-y-1.5">
                         <div className="flex items-center gap-2">
                           <EditableSpan value={exp.company.value} onChange={(v) => updateExp(exp.id, { company: { ...exp.company, value: v } })} placeholder="Company" className="text-sm font-semibold text-zinc-900 flex-1" />
-                          <EditableSpan value={exp.date.value} onChange={(v) => updateExp(exp.id, { date: { ...exp.date, value: v } })} placeholder="Date" className="text-xs text-zinc-400" />
+                          <EditableSpan value={exp.date.value}    onChange={(v) => updateExp(exp.id, { date:    { ...exp.date,    value: v } })} placeholder="Date"    className="text-xs text-zinc-400" />
                         </div>
                         <EditableSpan value={exp.title.value} onChange={(v) => updateExp(exp.id, { title: { ...exp.title, value: v } })} placeholder="Title" className="text-xs text-zinc-500 italic" />
                       </div>
@@ -528,8 +544,8 @@ export function CvEditorModal({
                     </div>
                     <BulletList
                       section="experiences" entryId={exp.id} bullets={exp.bullets}
-                      onAdd={() => addBulletToExp(exp.id)}
-                      onRemove={(i) => removeBulletFromExp(exp.id, i)}
+                      onAdd={()        => addBulletToExp(exp.id)}
+                      onRemove={(i)    => removeBulletFromExp(exp.id, i)}
                       onUpdate={(i, v) => updateExpBullet(exp.id, i, v)}
                     />
                   </div>
@@ -570,13 +586,16 @@ export function CvEditorModal({
                     onDragOver={(e) => { e.preventDefault(); setDragOver({ section: "projects", entryId: proj.id }); }}
                     onDrop={() => handleEntryDrop("projects", proj.id)}
                     onDragEnd={() => { setDrag(null); setDragOver(null); }}
-                    className={`border rounded-xl p-4 space-y-3 transition-all ${dragOver?.section === "projects" && dragOver?.entryId === proj.id ? "border-blue-300 bg-blue-50" : "border-zinc-100"}`}
+                    className={`border rounded-xl p-4 space-y-3 transition-all ${
+                      dragOver?.section === "projects" && dragOver?.entryId === proj.id
+                        ? "border-blue-300 bg-blue-50" : "border-zinc-100"
+                    }`}
                   >
                     <div className="flex items-start gap-2">
                       <GripVertical size={14} className="text-zinc-300 mt-0.5 shrink-0 cursor-grab active:cursor-grabbing" />
                       <div className="flex-1 flex items-center gap-2">
                         <EditableSpan value={proj.name.value} onChange={(v) => updateProj(proj.id, { name: { ...proj.name, value: v } })} placeholder="Project name" className="text-sm font-semibold text-zinc-900 flex-1" />
-                        <EditableSpan value={proj.date.value} onChange={(v) => updateProj(proj.id, { date: { ...proj.date, value: v } })} placeholder="Date" className="text-xs text-zinc-400" />
+                        <EditableSpan value={proj.date.value} onChange={(v) => updateProj(proj.id, { date: { ...proj.date, value: v } })} placeholder="Date"         className="text-xs text-zinc-400" />
                       </div>
                       <button onClick={() => removeProj(proj.id)} className="p-1 hover:bg-red-50 rounded text-zinc-300 hover:text-red-400 transition-colors shrink-0">
                         <Trash2 size={13} />
@@ -584,8 +603,8 @@ export function CvEditorModal({
                     </div>
                     <BulletList
                       section="projects" entryId={proj.id} bullets={proj.bullets}
-                      onAdd={() => addBulletToProj(proj.id)}
-                      onRemove={(i) => removeBulletFromProj(proj.id, i)}
+                      onAdd={()        => addBulletToProj(proj.id)}
+                      onRemove={(i)    => removeBulletFromProj(proj.id, i)}
                       onUpdate={(i, v) => updateProjBullet(proj.id, i, v)}
                     />
                   </div>
@@ -610,19 +629,19 @@ const CL_PAGE_H = 1123;
 export function ClEditorModal({
   userJobId, initialHtml, onClose, onSaved,
 }: {
-  userJobId: string;
+  userJobId:   string;
   initialHtml: string;
-  onClose: () => void;
-  onSaved: (pdfUrl: string) => void;
+  onClose:     () => void;
+  onSaved:     (pdfUrl: string) => void;
 }) {
-  const iframeRef = useRef<HTMLIFrameElement>(null);
-  const canvasRef = useRef<HTMLDivElement>(null);
-  const [scale, setScale] = useState(1);
-  const [saving, setSaving] = useState(false);
+  const iframeRef  = useRef<HTMLIFrameElement>(null);
+  const canvasRef  = useRef<HTMLDivElement>(null);
+  const [scale, setScale]               = useState(1);
+  const [saving, setSaving]             = useState(false);
   const [regenerating, setRegenerating] = useState(false);
-  const [isDirty, setIsDirty] = useState(false);
-  const [error, setError] = useState("");
-  const [wordCount, setWordCount] = useState(0);
+  const [isDirty, setIsDirty]           = useState(false);
+  const [error, setError]               = useState("");
+  const [wordCount, setWordCount]       = useState(0);
 
   const recomputeScale = useCallback(() => {
     if (!canvasRef.current) return;
@@ -647,7 +666,7 @@ export function ClEditorModal({
     doc.body.setAttribute("contenteditable", "true");
     doc.body.setAttribute("spellcheck", "true");
     doc.body.style.outline = "none";
-    doc.body.style.cursor = "text";
+    doc.body.style.cursor  = "text";
     const text = doc.body.innerText || "";
     setWordCount(text.trim().split(/\s+/).filter(Boolean).length);
     setIsDirty(false);
@@ -664,7 +683,7 @@ export function ClEditorModal({
 
   function getCurrentHtml() {
     const iframe = iframeRef.current;
-    const doc = iframe?.contentDocument ?? iframe?.contentWindow?.document;
+    const doc    = iframe?.contentDocument ?? iframe?.contentWindow?.document;
     return doc?.documentElement?.outerHTML ?? "";
   }
 
@@ -674,9 +693,9 @@ export function ClEditorModal({
     setSaving(true); setError("");
     try {
       const res = await fetch(`${API}/custom_cl/edit?user_job_id=${userJobId}`, {
-        method: "PUT",
+        method:  "PUT",
         headers: { Authorization: `Bearer ${tok()}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ user_job_id: userJobId, mode: "html", content: html }),
+        body:    JSON.stringify({ user_job_id: userJobId, mode: "html", content: html }),
       });
       if (!res.ok) { const d = await res.json(); throw new Error(d.detail || "Save failed"); }
       const data = await res.json();
@@ -694,9 +713,9 @@ export function ClEditorModal({
     setRegenerating(true); setError("");
     try {
       const res = await fetch(`${API}/custom_cl/edit?user_job_id=${userJobId}`, {
-        method: "PUT",
+        method:  "PUT",
         headers: { Authorization: `Bearer ${tok()}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ user_job_id: userJobId, mode: "regenerate" }),
+        body:    JSON.stringify({ user_job_id: userJobId, mode: "regenerate" }),
       });
       if (!res.ok) throw new Error("Regeneration failed");
       const getRes = await fetch(`${API}/custom_cl/get?user_job_id=${userJobId}`, {
