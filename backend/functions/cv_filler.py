@@ -36,6 +36,7 @@ _UNICODE_REPLACEMENTS = {
     "\u2018": "'", "\u2019": "'",
     "\u201c": '"', "\u201d": '"',
     "\u2026": "...",
+    "\u202f": " ",  # narrow no-break space
 }
 
 def _sanitize_latex_text(text: str) -> str:
@@ -106,12 +107,18 @@ def _substitute_labels(text: str, var: str, item: dict) -> str:
         if parts[0] != var:
             return m.group(0)
         key = parts[1] if len(parts) > 1 else parts[0]
-        raw = item.get(key, "")
-        if key == "id":
-            return str(raw) if raw is not None else ""   # never escape ids
+        keys = key.split(".")
+        raw = item
+        for k in keys:
+            if isinstance(raw, dict):
+                raw = raw.get(k, "")
+            else:
+                raw = ""
+                break
+        if keys[-1] == "id":
+            return str(raw) if raw is not None else ""
         return _val(raw)
     return _LABEL_RE.sub(_sub, text)
-
 
 def _render_template(text: str, var: str, item: dict) -> str:
     """
@@ -159,17 +166,17 @@ def _render_template(text: str, var: str, item: dict) -> str:
 
 def _build_skill_rows(skills_raw) -> list:
     if isinstance(skills_raw, str):
-        return [{"id": "skill_0", "label": "Skills", "value": skills_raw}]
+        return [{"id": "skill-0", "label": "Skills", "value": skills_raw}]
     if isinstance(skills_raw, dict):
         return [
-            {"id": f"skill_{i}", "label": label, "value": value}
+            {"id": f"skill-{i}", "label": label, "value": value}
             for i, (label, value) in enumerate(skills_raw.items())
         ]
     if isinstance(skills_raw, list):
         rows = []
         for i, row in enumerate(skills_raw):
             if isinstance(row, dict):
-                row.setdefault("id", f"skill_{i}")
+                row.setdefault("id", f"skill-{i}")
                 rows.append(row)
         return rows
     return []

@@ -105,35 +105,37 @@ def strip_ids(obj):
  
  
 def stamp_cv_ids(cv: dict) -> dict:
+    print("STAMP CALLED - using dashes")
     cv = strip_ids(cv)
  
     for exp in cv.get("experiences", []):
         eid = str(uuid.uuid4())[:8]
         exp["id"]      = eid
-        exp["title"]   = {"id": f"experience_{eid}_title",   "value": exp.get("title", "")}
-        exp["company"] = {"id": f"experience_{eid}_company",  "value": exp.get("company", "")}
-        exp["date"]    = {"id": f"experience_{eid}_date",     "value": exp.get("date", "")}
+        exp["title"]   = {"id": f"experience-{eid}-title",   "value": exp.get("title", "")}
+        exp["company"] = {"id": f"experience-{eid}-company",  "value": exp.get("company", "")}
+        exp["date"]    = {"id": f"experience-{eid}-date",     "value": exp.get("date", "")}
         exp["bullets"] = [
-            {"id": f"experience_{eid}_b{i+1}", "value": b if isinstance(b, str) else b.get("value", "")}
+            {"id": f"experience-{eid}-b{i+1}", "value": b if isinstance(b, str) else b.get("value", "")}
             for i, b in enumerate(exp.get("bullets", []))
         ]
+
  
     for proj in cv.get("projects", []):
         pid = str(uuid.uuid4())[:8]
-        proj["id"]      = pid
-        proj["name"]    = {"id": f"proj_{pid}_name",  "value": proj.get("name", "")}
-        proj["date"]    = {"id": f"proj_{pid}_date",  "value": proj.get("date", "")}
+        proj["id"]   = pid
+        proj["name"] = {"id": f"proj-{pid}-name",  "value": proj.get("name", "")}
+        proj["date"] = {"id": f"proj-{pid}-date",  "value": proj.get("date", "")}
         proj["bullets"] = [
-            {"id": f"proj_{pid}_b{i+1}", "value": b if isinstance(b, str) else b.get("value", "")}
+            {"id": f"proj-{pid}-b{i+1}", "value": b if isinstance(b, str) else b.get("value", "")}
             for i, b in enumerate(proj.get("bullets", []))
         ]
  
     for edu in cv.get("education", []):
         edid = str(uuid.uuid4())[:8]
-        edu["id"]       = edid
-        edu["school"]   = {"id": f"educ_{edid}_school", "value": edu.get("institution", edu.get("school", ""))}
-        edu["degree"]   = {"id": f"educ_{edid}_degree", "value": edu.get("degree", "")}
-        edu["date"]     = {"id": f"educ_{edid}_date",   "value": edu.get("end_date", edu.get("date", ""))}
+        edu["id"]     = edid
+        edu["school"] = {"id": f"educ-{edid}-school", "value": edu.get("institution", edu.get("school", ""))}
+        edu["degree"] = {"id": f"educ-{edid}-degree", "value": edu.get("degree", "")}
+        edu["date"]   = {"id": f"educ-{edid}-date",   "value": edu.get("end_date", edu.get("date", ""))}
  
     return cv
 

@@ -15,10 +15,7 @@
 }
 \makeatother
 
-%% \tagged{id}{text} bakes a named PDF anchor — only safe to use INSIDE \begin{document},
-%% never inside \name{}/\address{} since those are stored via \def and expanded later
-%% by resume.cls's \AtBeginDocument hook, which corrupts hyperref's internal state.
-\newcommand{\tagged}[2]{\ifx\\#2\\\else\hypertarget{#1}{#2}\fi}
+\newcommand{\tagged}[2]{#2}
 
 \name{<<contact_name>>}
 \address{
@@ -35,9 +32,9 @@
 %% ── Education ────────────────────────────────────────────────────────────────
 \begin{rSection}{Education}
 %%FOR_EACH edu IN education%%
-{\fontsize{11}{15}\bf \tagged{<<edu.id>>_school}{<<edu.school>>}} \hfill <<edu.location>> \\
-{\fontsize{10}{12} \tagged{<<edu.id>>_degree}{<<edu.degree>>}} \hfill {\small \tagged{<<edu.id>>_date}{<<edu.date>>}} \\
-{\fontsize{9}{12}\selectfont \tagged{<<edu.id>>_field}{<<edu.field>>}}
+{\fontsize{11}{15}\bf \tagged{<<edu.school.id>>}{<<edu.school.value>>}} \hfill \, \\
+{\fontsize{10}{12} \tagged{<<edu.degree.id>>}{<<edu.degree.value>>}} \hfill {\small \tagged{<<edu.date.id>>}{<<edu.date.value>>}} \\
+{\fontsize{9}{12}\selectfont \tagged{<<edu.field.id>>}{<<edu.field.value>>}}
 %%END_FOR%%
 \end{rSection}
 
@@ -45,10 +42,10 @@
 \begin{rSection}{Experience}
 %%FOR_EACH exp IN experiences%%
 \begin{rSubsection}
-  {\tagged{<<exp.id>>_company}{<<exp.company>>}}
-  {\small \tagged{<<exp.id>>_date}{<<exp.date>>}}
-  {\tagged{<<exp.id>>_title}{<<exp.title>>}} -- {<<exp.location>>}
-  {}
+  {\tagged{<<exp.company.id>>}{<<exp.company.value>>}}
+  {\small \tagged{<<exp.date.id>>}{<<exp.date.value>>}}
+  {\tagged{<<exp.title.id>>}{<<exp.title.value>>}}
+  { }
 {\fontsize{10}{12}\selectfont
 %%FOR_EACH bullet IN bullets%%
   \item \tagged{<<bullet.id>>}{<<bullet.value>>}
@@ -65,7 +62,7 @@
 {\fontsize{9.5}{13}\selectfont
 \begin{tabular}{ @{} >{\bfseries}l @{\hspace{4ex}} p{0.69\textwidth} }
 %%FOR_EACH row IN skills%%
-\tagged{<<row.id>>_label}{<<row.label>>} & \tagged{<<row.id>>_value}{<<row.value>>} \\
+\tagged{<<row.id>>-label}{<<row.label>>} & \tagged{<<row.id>>-value}{<<row.value>>} \\
 %%END_FOR%%
 \end{tabular}
 }
@@ -77,12 +74,11 @@
 \vspace{-1mm}
 %%FOR_EACH proj IN projects%%
 \fontsize{10}{12}\begin{rSubsection}
-  {\tagged{<<proj.id>>_name}{<<proj.name>>}}{}{}{}
+  {\tagged{<<proj.name.id>>}{<<proj.name.value>>}}{}{}{}
 {\fontsize{9}{12}\selectfont
 %%FOR_EACH bullet IN bullets%%
   \item \tagged{<<bullet.id>>}{<<bullet.value>>}
 %%END_FOR%%
-  \item \textbf{Tech Stack:} \textit{\tagged{<<proj.id>>_stack}{<<proj.stack>>}}
 }
 \end{rSubsection}
 \vspace{-2mm}
