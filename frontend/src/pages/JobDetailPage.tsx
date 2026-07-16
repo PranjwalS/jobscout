@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react-hooks/set-state-in-effect */
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
@@ -7,6 +8,7 @@ import {
   Trash2, Clock, CheckCircle2, AlertCircle,
   Bookmark, MessageSquare,
 } from "lucide-react";
+import { CvEditorModal, ClEditorModal } from "./JobEditors";
 
 const API = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
@@ -166,6 +168,9 @@ export default function JobDetailPage() {
   const [savingNotes, setSavingNotes] = useState(false);
 
   const [notesDraft, setNotesDraft] = useState("");
+
+  const [cvEditorOpen, setCvEditorOpen] = useState(false);
+  const [clEditorOpen, setClEditorOpen] = useState(false);
 
   const load = useCallback(async () => {
     if (!userJobId) return;
@@ -389,47 +394,57 @@ export default function JobDetailPage() {
           <div className="bg-white border border-zinc-100 rounded-xl p-5">
             <h2 className="text-xs font-semibold text-zinc-800 uppercase tracking-wider mb-3">Application materials</h2>
             <div className="flex flex-col gap-3">
+
+              {/* CV row */}
               <div className="flex items-center justify-between gap-3 py-2 border-b border-zinc-50">
                 <div className="flex items-center gap-2 min-w-0">
                   <FileText size={14} className="text-zinc-400 shrink-0" />
                   <span className="text-xs text-zinc-700">Custom CV</span>
-                </div>
-                <div className="flex items-center gap-2 shrink-0">
                   <span className={`text-[10px] px-2 py-0.5 rounded-full ${
                     user_job.cv_json ? "bg-emerald-50 text-emerald-600" : "bg-zinc-100 text-zinc-400"
                   }`}>
-                    {user_job.cv_json ? "Generated" : "Not yet generated"}
+                    {user_job.cv_json ? "Generated" : "Not generated"}
                   </span>
-                  {user_job.cv_pdf_url && (
-                    <a
-                      href={user_job.cv_pdf_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-zinc-400 hover:text-zinc-700"
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  {user_job.cv_json && (
+                    <button
+                      onClick={() => setCvEditorOpen(true)}
+                      className="text-[11px] px-2.5 py-1 rounded-md border border-zinc-200 text-zinc-600 hover:border-zinc-400 transition-colors"
                     >
+                      Edit CV
+                    </button>
+                  )}
+                  {user_job.cv_pdf_url && (
+                    <a href={user_job.cv_pdf_url} target="_blank" rel="noopener noreferrer" className="text-zinc-400 hover:text-zinc-700">
                       <ExternalLink size={12} />
                     </a>
                   )}
                 </div>
               </div>
+
+              {/* Cover letter row */}
               <div className="flex items-center justify-between gap-3 py-2">
                 <div className="flex items-center gap-2 min-w-0">
                   <Mail size={14} className="text-zinc-400 shrink-0" />
                   <span className="text-xs text-zinc-700">Cover letter</span>
-                </div>
-                <div className="flex items-center gap-2 shrink-0">
                   <span className={`text-[10px] px-2 py-0.5 rounded-full ${
                     user_job.cover_letter_text ? "bg-emerald-50 text-emerald-600" : "bg-zinc-100 text-zinc-400"
                   }`}>
-                    {user_job.cover_letter_text ? "Generated" : "Not yet generated"}
+                    {user_job.cover_letter_text ? "Generated" : "Not generated"}
                   </span>
-                  {user_job.cover_letter_pdf_url && (
-                    <a
-                      href={user_job.cover_letter_pdf_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-zinc-400 hover:text-zinc-700"
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  {user_job.cover_letter_html && (
+                    <button
+                      onClick={() => setClEditorOpen(true)}
+                      className="text-[11px] px-2.5 py-1 rounded-md border border-zinc-200 text-zinc-600 hover:border-zinc-400 transition-colors"
                     >
+                      Edit CL
+                    </button>
+                  )}
+                  {user_job.cover_letter_pdf_url && (
+                    <a href={user_job.cover_letter_pdf_url} target="_blank" rel="noopener noreferrer" className="text-zinc-400 hover:text-zinc-700">
                       <ExternalLink size={12} />
                     </a>
                   )}
@@ -437,6 +452,8 @@ export default function JobDetailPage() {
               </div>
             </div>
           </div>
+
+
 
           {/* Notes card */}
           <div className="bg-white border border-zinc-100 rounded-xl p-5">
@@ -548,6 +565,38 @@ export default function JobDetailPage() {
           </div>
         </div>
       </div>
+
+      {cvEditorOpen && user_job.cv_json && (
+        <CvEditorModal
+          userJobId={userJobId!}
+          initialCvJson={user_job.cv_json as any}
+          onClose={() => setCvEditorOpen(false)}
+          onSaved={(newCvJson, pdfUrl) => {
+            setData((prev) =>
+              prev ? {
+                ...prev,
+                user_job: { ...prev.user_job, cv_json: newCvJson as any, cv_pdf_url: pdfUrl }
+              } : prev
+            );
+          }}
+        />
+      )}
+
+      {clEditorOpen && user_job.cover_letter_html && (
+        <ClEditorModal
+          userJobId={userJobId!}
+          initialHtml={user_job.cover_letter_html}
+          onClose={() => setClEditorOpen(false)}
+          onSaved={(pdfUrl) => {
+            setData((prev) =>
+              prev ? {
+                ...prev,
+                user_job: { ...prev.user_job, cover_letter_pdf_url: pdfUrl }
+              } : prev
+            );
+          }}
+        />
+      )}
     </div>
   );
 }

@@ -764,7 +764,7 @@ def cl_edit(data: EditCoverLetterRequest, user_job: dict = Depends(get_owned_use
         "cover_letter_pdf_url": pdf_url
     }).eq("id", data.user_job_id).execute()
 
-    return {"status": "ok", "user_job_id": user_job["id"]}
+    return {"status": "ok", "user_job_id": user_job["id"], "coverletter_url": pdf_url}
 
 
 
