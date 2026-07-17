@@ -30,7 +30,7 @@ now mainly, we on backend;
 
     back on frontend;
     X. Design job_page cleanly, nice and stacked, and the clear tools available on right side being the edit/regens for cl/cv and change status, auto_apply, etc
-    2. MAKE the whole cv writing logic, so all the editing and view and whatnot inspired by coverletter gen/edit code
+    X. MAKE the whole cv writing logic, so all the editing and view and whatnot inspired by coverletter gen/edit code
 
     finally;
     now that all major logic is setup;

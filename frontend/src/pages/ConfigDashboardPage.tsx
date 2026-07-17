@@ -136,7 +136,6 @@ function ContextMenu({
 
   if (!menu) return null;
 
-  // Clamp to viewport
   const style: React.CSSProperties = {
     position: "fixed",
     top: Math.min(menu.y, window.innerHeight - 220),
@@ -293,12 +292,12 @@ function Analytics({ jobs }: { jobs: UserJob[] }) {
   jobs.forEach((j) => { byStatus[j.status] = (byStatus[j.status] || 0) + 1; });
 
   const stats = [
-    { label: "Total",   value: total,                    icon: <Briefcase size={13} /> },
-    { label: "Avg score", value: `${avgScore}%`,         icon: <BarChart2 size={13} /> },
-    { label: "Applied", value: byStatus["applied"] ?? 0, icon: <Send size={13} /> },
-    { label: "Saved",   value: byStatus["saved"] ?? 0,   icon: <Star size={13} /> },
-    { label: "Queue",   value: byStatus["queued"] ?? 0,  icon: <Clock size={13} /> },
-    { label: "Incoming",value: byStatus["new"] ?? 0,     icon: <TrendingUp size={13} /> },
+    { label: "Total",    value: total,                    icon: <Briefcase size={13} /> },
+    { label: "Avg score",value: `${avgScore}%`,           icon: <BarChart2 size={13} /> },
+    { label: "Applied",  value: byStatus["applied"] ?? 0, icon: <Send size={13} /> },
+    { label: "Saved",    value: byStatus["saved"] ?? 0,   icon: <Star size={13} /> },
+    { label: "Queue",    value: byStatus["queued"] ?? 0,  icon: <Clock size={13} /> },
+    { label: "Incoming", value: byStatus["new"] ?? 0,     icon: <TrendingUp size={13} /> },
   ];
 
   return (
@@ -348,10 +347,10 @@ export default function ConfigDashboardPage() {
   function setFilters(f: Filters) {
     setSearchParams((prev) => {
       const next = new URLSearchParams(prev);
-      f.jobType  ? next.set("jobType", f.jobType)   : next.delete("jobType");
+      f.jobType  ? next.set("jobType", f.jobType)           : next.delete("jobType");
       f.minScore ? next.set("minScore", String(f.minScore)) : next.delete("minScore");
-      f.company  ? next.set("company", f.company)   : next.delete("company");
-      f.field    ? next.set("field", f.field)       : next.delete("field");
+      f.company  ? next.set("company", f.company)           : next.delete("company");
+      f.field    ? next.set("field", f.field)               : next.delete("field");
       return next;
     }, { replace: true });
   }
@@ -407,7 +406,6 @@ export default function ConfigDashboardPage() {
   useEffect(() => { loadJobs(); }, [loadJobs]);
 
   // ── Scroll restoration ────────────────────────────────────────────────────
-  // Save scroll on unmount
   useEffect(() => {
     return () => {
       if (configId) {
@@ -416,7 +414,6 @@ export default function ConfigDashboardPage() {
     };
   }, [configId]);
 
-  // Restore scroll after data loads
   useLayoutEffect(() => {
     if (!loading && configId) {
       const saved = sessionStorage.getItem(SCROLL_KEY(configId));
@@ -503,7 +500,6 @@ export default function ConfigDashboardPage() {
 
   // ── Status update (single) ────────────────────────────────────────────────
   async function updateStatus(userJobId: string, status: string) {
-    // Optimistic update
     setAllJobs((prev) => prev.map((j) => j.id === userJobId ? { ...j, status } : j));
     await fetch(`${API}/user-jobs/${userJobId}`, {
       method: "PATCH",
@@ -562,6 +558,23 @@ export default function ConfigDashboardPage() {
         next.set("dir", "desc");
         return next;
       }, { replace: true });
+    }
+  }
+
+  // ── Row navigation ────────────────────────────────────────────────────────
+  // Ctrl/Cmd+click or middle-click → new tab (native browser behaviour via <a>)
+  // Plain click on row (not on interactive child) → navigate in current tab
+  function handleRowClick(e: React.MouseEvent, uj: UserJob) {
+    // Let interactive children (select, button, a) handle themselves
+    const target = e.target as HTMLElement;
+    if (target.closest("select,button,a")) return;
+
+    const href = `/dashboard/jobs/${uj.id}`;
+
+    if (e.ctrlKey || e.metaKey || e.button === 1) {
+      window.open(href, "_blank", "noopener,noreferrer");
+    } else {
+      navigate(href);
     }
   }
 
@@ -779,20 +792,15 @@ export default function ConfigDashboardPage() {
                     <tr
                       key={uj.id}
                       onContextMenu={(e) => handleContextMenu(e, uj)}
-                      onClick={(e) => {
-                        // don't steal clicks from interactive children
-                        const target = e.target as HTMLElement;
-                        if (target.closest("select,button,a")) return;
-                        toggleOne(uj.id);
-                      }}
-                      className={`group transition-colors cursor-default select-none ${
+                      onClick={(e) => handleRowClick(e, uj)}
+                      className={`group transition-colors cursor-pointer select-none ${
                         isSelected ? "bg-zinc-50" : "hover:bg-zinc-50/60"
                       }`}
                     >
-                      {/* Checkbox */}
-                      <td className="w-10 px-3 py-3">
+                      {/* Checkbox — stop propagation so row click doesn't also fire */}
+                      <td className="w-10 px-3 py-3" onClick={(e) => e.stopPropagation()}>
                         <button
-                          onClick={(e) => { e.stopPropagation(); toggleOne(uj.id); }}
+                          onClick={() => toggleOne(uj.id)}
                           className="text-zinc-300 group-hover:text-zinc-400 block"
                         >
                           {isSelected
@@ -820,11 +828,10 @@ export default function ConfigDashboardPage() {
                       </td>
 
                       {/* Status */}
-                      <td className="px-3 py-3">
+                      <td className="px-3 py-3" onClick={(e) => e.stopPropagation()}>
                         <select
                           value={uj.status}
-                          onChange={(e) => { e.stopPropagation(); updateStatus(uj.id, e.target.value); }}
-                          onClick={(e) => e.stopPropagation()}
+                          onChange={(e) => updateStatus(uj.id, e.target.value)}
                           className={`text-[10px] font-medium px-2 py-1 rounded-full border-0 cursor-pointer focus:outline-none focus:ring-1 focus:ring-zinc-300 capitalize ${
                             STATUS_COLORS[uj.status] || "bg-zinc-100 text-zinc-500"
                           }`}
@@ -847,10 +854,10 @@ export default function ConfigDashboardPage() {
                       </td>
 
                       {/* Actions */}
-                      <td className="px-3 py-3">
+                      <td className="px-3 py-3" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
                           <button
-                            onClick={(e) => { e.stopPropagation(); updateStatus(uj.id, "saved"); }}
+                            onClick={() => updateStatus(uj.id, "saved")}
                             title="Save"
                             className="p-1.5 rounded-md text-zinc-400 hover:text-amber-500 hover:bg-amber-50 transition-colors"
                           >
@@ -860,8 +867,7 @@ export default function ConfigDashboardPage() {
                             href={`/dashboard/jobs/${uj.id}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            onClick={(e) => e.stopPropagation()}
-                            title="Open job page"
+                            title="Open in new tab"
                             className="p-1.5 rounded-md text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 transition-colors"
                           >
                             <ExternalLink size={13} />
