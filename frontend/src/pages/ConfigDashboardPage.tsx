@@ -370,6 +370,15 @@ export default function ConfigDashboardPage() {
   const tableRef = useRef<HTMLDivElement>(null);
   const filterBtnRef = useRef<HTMLDivElement>(null);
 
+  // ── Build the "back" URL we'll stamp on every job link ───────────────────
+  // e.g. /dashboard/configs/abc123?tab=saved&q=foo
+  const backUrl = `/dashboard/configs/${configId}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
+
+  // Job detail href — carries ?from= so the detail page can navigate back here
+  function jobHref(userJobId: string) {
+    return `/dashboard/jobs/${userJobId}?from=${encodeURIComponent(backUrl)}`;
+  }
+
   // ── Load config ───────────────────────────────────────────────────────────
   useEffect(() => {
     if (!configId) return;
@@ -542,7 +551,7 @@ export default function ConfigDashboardPage() {
   }
 
   function openJobTab(userJobId: string) {
-    window.open(`/dashboard/jobs/${userJobId}`, "_blank", "noopener,noreferrer");
+    window.open(jobHref(userJobId), "_blank", "noopener,noreferrer");
   }
 
   const hasFilters = !!(filters.jobType || filters.minScore || filters.company || filters.field);
@@ -562,15 +571,11 @@ export default function ConfigDashboardPage() {
   }
 
   // ── Row navigation ────────────────────────────────────────────────────────
-  // Ctrl/Cmd+click or middle-click → new tab (native browser behaviour via <a>)
-  // Plain click on row (not on interactive child) → navigate in current tab
   function handleRowClick(e: React.MouseEvent, uj: UserJob) {
-    // Let interactive children (select, button, a) handle themselves
     const target = e.target as HTMLElement;
     if (target.closest("select,button,a")) return;
 
-    const href = `/dashboard/jobs/${uj.id}`;
-
+    const href = jobHref(uj.id);
     if (e.ctrlKey || e.metaKey || e.button === 1) {
       window.open(href, "_blank", "noopener,noreferrer");
     } else {
@@ -787,6 +792,7 @@ export default function ConfigDashboardPage() {
                   const job = uj.jobs;
                   const isSelected = selected.has(uj.id);
                   const loc = job.locations?.slice(0, 1).join(", ") || job.location || "—";
+                  const href = jobHref(uj.id);
 
                   return (
                     <tr
@@ -797,7 +803,7 @@ export default function ConfigDashboardPage() {
                         isSelected ? "bg-zinc-50" : "hover:bg-zinc-50/60"
                       }`}
                     >
-                      {/* Checkbox — stop propagation so row click doesn't also fire */}
+                      {/* Checkbox */}
                       <td className="w-10 px-3 py-3" onClick={(e) => e.stopPropagation()}>
                         <button
                           onClick={() => toggleOne(uj.id)}
@@ -863,8 +869,9 @@ export default function ConfigDashboardPage() {
                           >
                             <BookmarkPlus size={13} />
                           </button>
+                          {/* Real <a> so right-click + Ctrl+click work natively */}
                           <a
-                            href={`/dashboard/jobs/${uj.id}`}
+                            href={href}
                             target="_blank"
                             rel="noopener noreferrer"
                             title="Open in new tab"

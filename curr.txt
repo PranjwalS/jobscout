@@ -15,7 +15,7 @@ now mainly, we on backend;
     we on frontend;
     X. Make the full flow UI for the creation_dashboard
     3. Make page for edits to dashboard_configs for every dashboard
-    2. Determine all different tables to be provided in every dashboard (all, applied, incoming, queue-bot, etc) and then create the proper grids for the tables, clean and straightforward with all the info, and all columns dynamic
+    X. Determine all different tables to be provided in every dashboard (all, applied, incoming, queue-bot, etc) and then create the proper grids for the tables, clean and straightforward with all the info, and all columns dynamic
             also ensure their is proper filtering, and searching logic setup, as well as quick bulk edits/deletion possibilities, and finally also analytics for every grids
     
     back on backend;

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react-hooks/set-state-in-effect */
 import { useEffect, useState, useCallback } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import {
   ChevronLeft, ExternalLink, MapPin, Calendar,
   Building2, RefreshCw, FileText, Mail, Send, Star, XCircle,
@@ -157,12 +157,15 @@ function ToolButton({
 export default function JobDetailPage() {
   const { userJobId } = useParams<{ userJobId: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  // ?from= carries the exact dashboard URL to go back to
+  const fromUrl = searchParams.get("from");
 
   const [data, setData] = useState<JobDetailResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Per-action loading flags — keeps tool buttons independently responsive
   const [regenCv, setRegenCv] = useState(false);
   const [regenCl, setRegenCl] = useState(false);
   const [savingNotes, setSavingNotes] = useState(false);
@@ -193,9 +196,17 @@ export default function JobDetailPage() {
 
   useEffect(() => { load(); }, [load]);
 
+  // Back navigation — use ?from= if present, else try history, else configs list
+  function goBack() {
+    if (fromUrl) {
+      navigate(fromUrl);
+    } else {
+      navigate(-1);
+    }
+  }
+
   async function patchUserJob(updates: Record<string, unknown>) {
     if (!data) return;
-    // Optimistic
     setData((prev) => prev ? { ...prev, user_job: { ...prev.user_job, ...updates } } : prev);
     try {
       const res = await fetch(`${API}/user-jobs/${userJobId}`, {
@@ -206,7 +217,7 @@ export default function JobDetailPage() {
       if (!res.ok) throw new Error("Update failed");
     } catch (e) {
       console.error(e);
-      load(); // revert by reloading on failure
+      load();
     }
   }
 
@@ -256,7 +267,7 @@ export default function JobDetailPage() {
         method: "DELETE",
         headers: { Authorization: `Bearer ${tok()}` },
       });
-      navigate(-1);
+      goBack();
     } catch (e) {
       console.error(e);
     }
@@ -284,7 +295,7 @@ export default function JobDetailPage() {
         <AlertCircle size={28} className="text-zinc-200" />
         <p className="text-sm text-zinc-500">{error || "Could not load this job"}</p>
         <button
-          onClick={() => navigate(-1)}
+          onClick={goBack}
           className="text-xs text-zinc-500 hover:text-zinc-900 underline"
         >
           Go back
@@ -303,7 +314,7 @@ export default function JobDetailPage() {
 
       {/* ── Back ─────────────────────────────────────────────────────── */}
       <button
-        onClick={() => navigate(-1)}
+        onClick={goBack}
         className="flex items-center gap-1.5 text-xs text-zinc-400 hover:text-zinc-700 transition-colors mb-4"
       >
         <ChevronLeft size={14} /> Back to dashboard
@@ -394,8 +405,6 @@ export default function JobDetailPage() {
           <div className="bg-white border border-zinc-100 rounded-xl p-5">
             <h2 className="text-xs font-semibold text-zinc-800 uppercase tracking-wider mb-3">Application materials</h2>
             <div className="flex flex-col gap-3">
-
-              {/* CV row */}
               <div className="flex items-center justify-between gap-3 py-2 border-b border-zinc-50">
                 <div className="flex items-center gap-2 min-w-0">
                   <FileText size={14} className="text-zinc-400 shrink-0" />
@@ -423,7 +432,6 @@ export default function JobDetailPage() {
                 </div>
               </div>
 
-              {/* Cover letter row */}
               <div className="flex items-center justify-between gap-3 py-2">
                 <div className="flex items-center gap-2 min-w-0">
                   <Mail size={14} className="text-zinc-400 shrink-0" />
@@ -452,8 +460,6 @@ export default function JobDetailPage() {
               </div>
             </div>
           </div>
-
-
 
           {/* Notes card */}
           <div className="bg-white border border-zinc-100 rounded-xl p-5">
