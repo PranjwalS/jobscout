@@ -1,7 +1,4 @@
-now that the whole profile and coverletter and cv logic is all done and a minimal version of CareerTwin seems to be up
 
-0. make a new repo and new .env locally and reinstall all the relevant stuff but this new repo is basically the PRODUCT VERSION and call it jobscout+CareerTwin on github as well as setting up straightforward deployment elements right away like render/vercel for FE and app-services/gcp/etc for BE
-Firstly prepare to refine it, seems very empty and lean right now, so start designing how to fill those spots in the little empty places especially in CareerTwin and whatnot 
 Secondly, also decide any further side products to includes, to put into PRODUCTS in dashboard_layout basically, we already have the cv parser and coverletter generator, but further make a list of elements, and first make and test them in PRODUCTS and then integrate into the actual main jobscout flow as needed but still keep in PRODUCTS
 
 now mainly, we on backend;
@@ -14,7 +11,6 @@ now mainly, we on backend;
 
     we on frontend;
     X. Make the full flow UI for the creation_dashboard
-    3. Make page for edits to dashboard_configs for every dashboard
     X. Determine all different tables to be provided in every dashboard (all, applied, incoming, queue-bot, etc) and then create the proper grids for the tables, clean and straightforward with all the info, and all columns dynamic
             also ensure their is proper filtering, and searching logic setup, as well as quick bulk edits/deletion possibilities, and finally also analytics for every grids
     
@@ -24,13 +20,17 @@ now mainly, we on backend;
     X. Go modify the schemas for user_jobs to allow all the scoring details mentionned in scoring.py and also redo the llm scoring parts, check comments
     X. Write both scoring logics being cv to job desc and job desc to cv 
     X. Write scoring logic/prompts for llm based scoring too
-    2. Plan out the automated_elements and start writing code that launches them on all dashboard_configs efficiently, BASICALLY; make the filter + score + cl + cv + llm_score pipeline
     X. Go write all the backend logic for CV generation, custom from careertwin per job, clearly define the regenerate endpoints (split new_job for coverletter into two proper endpoints), and then frontend for mods
-    3. On user signup, auto-generate a default 'master' dashboard_config for every user as the fallback when no dashboard is specified. Needed for cv and cl gens
 
     back on frontend;
     X. Design job_page cleanly, nice and stacked, and the clear tools available on right side being the edit/regens for cl/cv and change status, auto_apply, etc
     X. MAKE the whole cv writing logic, so all the editing and view and whatnot inspired by coverletter gen/edit code
+
+    remaining order:
+        1. Make page for edits to dashboard_configs for every dashboard
+        2. On user signup, auto-generate a default 'master' dashboard_config for every user as the fallback when no dashboard is specified. Needed for cv and cl gens
+        3. Plan out the automated_elements and start writing code that launches them on all dashboard_configs efficiently, BASICALLY; make the filter + score + cl + cv + llm_score pipeline
+        4. START THE PIPELINE, SET IT ALL UP (github actions for now)
 
     finally;
     now that all major logic is setup;
@@ -38,19 +38,11 @@ now mainly, we on backend;
     3. Write the frontend ui look for said extension - use react now instead of some html stuff - call it like Application Copilot
     4. Refine the extension with AI custom answers to custom questions per job application forms, user can highlight and ask ai assistant to help answer questions -> basically add a chatbot to the extension
 
-    4. reduced uncertainty.
-            So build systems that answer:
-
-            “Should I apply?”
-            “Do I actually have a chance?”
-            “Why was I rejected?”
-            “What should I improve next?”
-            “Am I wasting time?”
-            “What jobs fit me best?”
-
-
-	Ending with:
+Ending with:
 	O. Reviewing the usability on the front and refining the logic on the back and full finalizing before moving ahead
+
+
+----- 
 
 	
     ...
@@ -65,6 +57,18 @@ now mainly, we on backend;
                 the information then fed to RAG and allows the AI assistant to work specifically for the given user, giving career suggestions, comparing 2+ jobs depending on user, suggesting certifications or project ideas, suggesting new skills/stacks to pick up, etc
         6. Refine it all up Frontend wise and expand minimally with the products we had defined much earlier and provide them as standalones on the side (custom coverletter, cv, cold emails, etc)
         7. Finalize the backend and dbs, making them efficient and setting up all the security elements throughout (Make a checklist and follow it thoroughly and then create tests that try them too)
+
+
+    *. reduced uncertainty.
+            So build systems that answer:
+
+            “Should I apply?”
+            “Do I actually have a chance?”
+            “Why was I rejected?”
+            “What should I improve next?”
+            “Am I wasting time?”
+            “What jobs fit me best?”
+
 
 GOAL ALL IN ALL before being presented after all the above is:
             System proactively assists user, it goes out to help user find an actual job, expands into logging, sending notifications to users, maintaining the auto-apply queues, naturally doing cold outreach, connects to a single place and even allows phone ui
@@ -119,9 +123,6 @@ GOAL ALL IN ALL before being presented after all the above is:
 
 
 
-
-
-
         AFTER THE ABOVE, IT IS YC-READY but continue with;
         1. Create CareerBrain; basically feedback loops that looks at what jobs worked out for user, check what resumes/coverletters got the best responses and finetune itself further based on results, basically self improving
         2. Backwards recruiters to candidates searcher; companies searching for probabilistically strong candidates
@@ -129,4 +130,8 @@ GOAL ALL IN ALL before being presented after all the above is:
                 Questions like: “Should I specialize or generalize?” “Should I do a masters?” “What if I switch to ML?” “What if I spend 6 months on systems programming?” “Am I underpaid long-term?” “Should I target startups or enterprise?” 
                 This becomes: career forecasting.
         4. CareerTwin Tap-to-Share — at networking events, two users tap phones to instantly exchange full CareerTwin profiles (contact info, links, photo, socials) without any manual input.
+
+
+
+
 ... let's stop here and start working.
