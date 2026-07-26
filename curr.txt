@@ -40,9 +40,9 @@ now mainly, we on backend;
 
 Ending with:
 	O. Reviewing the usability on the front and refining the logic on the back and full finalizing before moving ahead
+        Q. Think about integrating stuff like Grammarly, LLM integration (custom cv/cl regen calls by user based on what they want) and a better visual Latex editor (off of github) for the text editor aspects
 
-
------ 
+-----  
 
 	
     ...
