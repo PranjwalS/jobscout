@@ -27,7 +27,7 @@ now mainly, we on backend;
     X. MAKE the whole cv writing logic, so all the editing and view and whatnot inspired by coverletter gen/edit code
 
     remaining order:
-        1. Make page for edits to dashboard_configs for every dashboard
+        X. Make page for edits to dashboard_configs for every dashboard
         2. On user signup, auto-generate a default 'master' dashboard_config for every user as the fallback when no dashboard is specified. Needed for cv and cl gens
         3. Plan out the automated_elements and start writing code that launches them on all dashboard_configs efficiently, BASICALLY; make the filter + score + cl + cv + llm_score pipeline
         4. START THE PIPELINE, SET IT ALL UP (github actions for now)
