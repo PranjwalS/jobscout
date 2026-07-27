@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Briefcase, Plus, RefreshCw, CheckCircle2, Clock } from "lucide-react";
+import { Briefcase, Plus, RefreshCw, CheckCircle2, Clock, Pencil } from "lucide-react";
 
 const API = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
@@ -50,7 +50,6 @@ export default function ConfigsPage() {
         method: "POST",
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
-      // refresh last_synced_at
       const res = await fetch(`${API}/dashboard-configs`, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
@@ -73,7 +72,9 @@ export default function ConfigsPage() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-lg font-semibold text-zinc-900">Dashboards</h1>
-          <p className="text-xs text-zinc-400 mt-0.5">{configs.length} configured · pick one to open</p>
+          <p className="text-xs text-zinc-400 mt-0.5">
+            {configs.length} configured · pick one to open
+          </p>
         </div>
         <button
           onClick={() => navigate("/dashboard/new")}
@@ -114,22 +115,46 @@ export default function ConfigsPage() {
                     <p className="text-xs text-zinc-400 mt-0.5 truncate">{c.description}</p>
                   )}
                 </div>
-                <button
-                  onClick={(e) => handleSync(e, c.id)}
-                  disabled={syncing === c.id}
-                  className="p-1.5 rounded-md text-zinc-400 hover:text-zinc-700 hover:bg-zinc-50 transition-colors shrink-0 opacity-0 group-hover:opacity-100"
-                  title="Sync jobs"
-                >
-                  <RefreshCw size={12} className={syncing === c.id ? "animate-spin" : ""} />
-                </button>
+
+                {/* Action buttons — visible on hover */}
+                <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/dashboard/configs/${c.id}/edit`);
+                    }}
+                    className="p-1.5 rounded-md text-zinc-400 hover:text-zinc-700 hover:bg-zinc-50 transition-colors"
+                    title="Edit dashboard"
+                  >
+                    <Pencil size={12} />
+                  </button>
+                  <button
+                    onClick={(e) => handleSync(e, c.id)}
+                    disabled={syncing === c.id}
+                    className="p-1.5 rounded-md text-zinc-400 hover:text-zinc-700 hover:bg-zinc-50 transition-colors"
+                    title="Sync jobs"
+                  >
+                    <RefreshCw size={12} className={syncing === c.id ? "animate-spin" : ""} />
+                  </button>
+                </div>
               </div>
 
               <div className="flex flex-wrap gap-1.5 mb-3">
                 {c.job_types?.slice(0, 3).map((t) => (
-                  <span key={t} className="text-[10px] px-2 py-0.5 bg-zinc-100 text-zinc-500 rounded-full capitalize">{t}</span>
+                  <span
+                    key={t}
+                    className="text-[10px] px-2 py-0.5 bg-zinc-100 text-zinc-500 rounded-full capitalize"
+                  >
+                    {t}
+                  </span>
                 ))}
                 {c.include_fields?.slice(0, 2).map((f) => (
-                  <span key={f} className="text-[10px] px-2 py-0.5 bg-blue-50 text-blue-500 rounded-full">{f}</span>
+                  <span
+                    key={f}
+                    className="text-[10px] px-2 py-0.5 bg-blue-50 text-blue-500 rounded-full"
+                  >
+                    {f}
+                  </span>
                 ))}
               </div>
 

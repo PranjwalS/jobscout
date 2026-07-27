@@ -13,6 +13,7 @@ import NewDashboardPage from "./pages/NewDashboardPage";
 import ConfigsPage from "./pages/ConfigsPage";
 import ConfigDashboardPage from "./pages/ConfigDashboardPage";
 import JobDetailPage from "./pages/JobDetailPage";
+import EditDashboard from "./pages/EditDashboard";
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const token = localStorage.getItem("token");
@@ -47,6 +48,7 @@ export default function App() {
           <Route path="new" element={<NewDashboardPage />} />
           <Route path="configs" element={<ConfigsPage />} />           
           <Route path="configs/:configId" element={<ConfigDashboardPage />} />  
+          <Route path="configs/:configId/edit" element={<EditDashboard />} />
           <Route path="jobs/:userJobId" element={<JobDetailPage />} /> 
         </Route>
 
