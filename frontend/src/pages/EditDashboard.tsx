@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 
@@ -13,12 +12,6 @@ interface SalaryConfig {
 interface DateRange {
   start?: string;
   end?: string;
-}
-
-interface LocationConfig {
-  mode: "preference" | "hard";
-  includes: string[];
-  excludes: string[];
 }
 
 interface DashboardConfig {
@@ -43,12 +36,12 @@ interface DashboardConfig {
   active: boolean;
 }
 
-// ─── API helpers ──────────────────────────────────────────────────────────────
+// ─── API ──────────────────────────────────────────────────────────────────────
 
 const API_BASE = import.meta.env.VITE_API_URL ?? "";
 
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
-  const token = localStorage.getItem("access_token");
+  const token = localStorage.getItem("token");
   const res = await fetch(`${API_BASE}${path}`, {
     ...options,
     headers: {
@@ -64,56 +57,72 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   return res.json();
 }
 
-// ─── Small reusable UI bits ───────────────────────────────────────────────────
+// ─── Sub-components ───────────────────────────────────────────────────────────
 
 function Label({ children }: { children: React.ReactNode }) {
   return (
-    <span
-      style={{
-        fontSize: 12,
-        fontWeight: 500,
-        color: "var(--text-secondary)",
-        textTransform: "uppercase",
-        letterSpacing: "0.06em",
-      }}
-    >
+    <span className="text-[11px] font-medium text-zinc-400 uppercase tracking-wider">
       {children}
     </span>
   );
 }
 
-function SectionCard({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
+function SectionCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div
-      style={{
-        background: "var(--surface-1)",
-        border: "0.5px solid var(--border)",
-        borderRadius: 12,
-        padding: "1.25rem 1.5rem",
-        display: "flex",
-        flexDirection: "column",
-        gap: 16,
-      }}
-    >
-      <p
-        style={{
-          margin: 0,
-          fontSize: 13,
-          fontWeight: 500,
-          color: "var(--text-secondary)",
-          borderBottom: "0.5px solid var(--border)",
-          paddingBottom: 10,
-        }}
-      >
+    <div className="bg-white border border-zinc-100 rounded-xl p-5 flex flex-col gap-4">
+      <p className="text-xs font-semibold text-zinc-400 border-b border-zinc-100 pb-2.5 m-0">
         {title}
       </p>
       {children}
+    </div>
+  );
+}
+
+function ChipToggle({
+  label,
+  active,
+  onClick,
+}: {
+  label: string;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`px-3 py-1 text-xs font-medium rounded-md border transition-colors capitalize ${
+        active
+          ? "bg-blue-50 border-blue-200 text-blue-600"
+          : "bg-zinc-50 border-zinc-100 text-zinc-500 hover:border-zinc-300"
+      }`}
+    >
+      {label}
+    </button>
+  );
+}
+
+function ModeToggle({
+  value,
+  onChange,
+}: {
+  value: "preference" | "hard";
+  onChange: (v: "preference" | "hard") => void;
+}) {
+  return (
+    <div className="inline-flex rounded-md border border-zinc-100 overflow-hidden">
+      {(["preference", "hard"] as const).map((opt) => (
+        <button
+          key={opt}
+          onClick={() => onChange(opt)}
+          className={`px-3 py-1.5 text-xs font-medium border-r border-zinc-100 last:border-0 transition-colors ${
+            value === opt
+              ? "bg-zinc-900 text-white"
+              : "bg-white text-zinc-500 hover:bg-zinc-50"
+          }`}
+        >
+          {opt === "preference" ? "Preference" : "Hard filter"}
+        </button>
+      ))}
     </div>
   );
 }
@@ -136,8 +145,7 @@ function TagInput({
 
   const filtered =
     suggestions?.filter(
-      (s) =>
-        s.toLowerCase().includes(input.toLowerCase()) && !values.includes(s)
+      (s) => s.toLowerCase().includes(input.toLowerCase()) && !values.includes(s)
     ) ?? [];
 
   const add = (val: string) => {
@@ -150,49 +158,18 @@ function TagInput({
   const remove = (val: string) => onChange(values.filter((v) => v !== val));
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+    <div className="flex flex-col gap-2">
       <Label>{label}</Label>
-      <div
-        style={{
-          display: "flex",
-          flexWrap: "wrap",
-          gap: 6,
-          padding: "8px 10px",
-          background: "var(--surface-2)",
-          border: "0.5px solid var(--border-strong)",
-          borderRadius: "var(--radius)",
-          minHeight: 42,
-          position: "relative",
-        }}
-      >
+      <div className="relative flex flex-wrap gap-1.5 p-2 min-h-[42px] bg-zinc-50 border border-zinc-200 rounded-lg">
         {values.map((v) => (
           <span
             key={v}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 5,
-              background: "var(--bg-accent)",
-              color: "var(--text-accent)",
-              borderRadius: 6,
-              fontSize: 12,
-              fontWeight: 500,
-              padding: "3px 8px",
-            }}
+            className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-600 border border-blue-100 rounded-md text-xs font-medium"
           >
             {v}
             <button
               onClick={() => remove(v)}
-              style={{
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                color: "var(--text-accent)",
-                padding: 0,
-                lineHeight: 1,
-                fontSize: 13,
-                opacity: 0.7,
-              }}
+              className="text-blue-400 hover:text-blue-700 leading-none"
               aria-label={`Remove ${v}`}
             >
               ×
@@ -201,10 +178,7 @@ function TagInput({
         ))}
         <input
           value={input}
-          onChange={(e) => {
-            setInput(e.target.value);
-            setShowSug(true);
-          }}
+          onChange={(e) => { setInput(e.target.value); setShowSug(true); }}
           onKeyDown={(e) => {
             if ((e.key === "Enter" || e.key === ",") && input.trim()) {
               e.preventDefault();
@@ -217,54 +191,15 @@ function TagInput({
           onFocus={() => setShowSug(true)}
           onBlur={() => setTimeout(() => setShowSug(false), 150)}
           placeholder={values.length === 0 ? placeholder : ""}
-          style={{
-            border: "none",
-            outline: "none",
-            background: "transparent",
-            color: "var(--text-primary)",
-            fontSize: 13,
-            flex: 1,
-            minWidth: 80,
-          }}
+          className="flex-1 min-w-[80px] bg-transparent border-none outline-none text-xs text-zinc-700 placeholder:text-zinc-300"
         />
         {showSug && filtered.length > 0 && (
-          <div
-            style={{
-              position: "absolute",
-              top: "calc(100% + 4px)",
-              left: 0,
-              right: 0,
-              background: "var(--surface-2)",
-              border: "0.5px solid var(--border-strong)",
-              borderRadius: "var(--radius)",
-              zIndex: 20,
-              maxHeight: 200,
-              overflowY: "auto",
-            }}
-          >
+          <div className="absolute top-[calc(100%+4px)] left-0 right-0 bg-white border border-zinc-200 rounded-lg z-20 max-h-48 overflow-y-auto shadow-sm">
             {filtered.slice(0, 20).map((s) => (
               <button
                 key={s}
                 onMouseDown={() => add(s)}
-                style={{
-                  display: "block",
-                  width: "100%",
-                  textAlign: "left",
-                  background: "none",
-                  border: "none",
-                  padding: "8px 12px",
-                  fontSize: 13,
-                  color: "var(--text-primary)",
-                  cursor: "pointer",
-                }}
-                onMouseEnter={(e) =>
-                  ((e.currentTarget as HTMLButtonElement).style.background =
-                    "var(--surface-1)")
-                }
-                onMouseLeave={(e) =>
-                  ((e.currentTarget as HTMLButtonElement).style.background =
-                    "none")
-                }
+                className="block w-full text-left px-3 py-2 text-xs text-zinc-700 hover:bg-zinc-50 transition-colors"
               >
                 {s}
               </button>
@@ -272,51 +207,6 @@ function TagInput({
           </div>
         )}
       </div>
-    </div>
-  );
-}
-
-function TogglePill({
-  options,
-  value,
-  onChange,
-}: {
-  options: { label: string; value: string }[];
-  value: string;
-  onChange: (v: string) => void;
-}) {
-  return (
-    <div
-      style={{
-        display: "inline-flex",
-        background: "var(--surface-0)",
-        border: "0.5px solid var(--border)",
-        borderRadius: "var(--radius)",
-        overflow: "hidden",
-      }}
-    >
-      {options.map((o) => (
-        <button
-          key={o.value}
-          onClick={() => onChange(o.value)}
-          style={{
-            padding: "5px 14px",
-            fontSize: 12,
-            fontWeight: 500,
-            border: "none",
-            cursor: "pointer",
-            background:
-              value === o.value ? "var(--surface-2)" : "transparent",
-            color:
-              value === o.value
-                ? "var(--text-primary)"
-                : "var(--text-secondary)",
-            borderRight: "0.5px solid var(--border)",
-          }}
-        >
-          {o.label}
-        </button>
-      ))}
     </div>
   );
 }
@@ -337,54 +227,43 @@ function Toast({
 
   return (
     <div
-      style={{
-        position: "fixed",
-        bottom: 24,
-        right: 24,
-        background: type === "success" ? "var(--bg-success)" : "var(--bg-danger)",
-        color: type === "success" ? "var(--text-success)" : "var(--text-danger)",
-        border: `0.5px solid ${type === "success" ? "var(--border-success)" : "var(--border-danger)"}`,
-        borderRadius: 10,
-        padding: "10px 18px",
-        fontSize: 13,
-        fontWeight: 500,
-        zIndex: 999,
-        boxShadow: "0 2px 12px rgba(0,0,0,0.08)",
-      }}
+      className={`fixed bottom-6 right-6 px-4 py-2.5 rounded-lg text-xs font-medium z-50 shadow-sm border ${
+        type === "success"
+          ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+          : "bg-red-50 text-red-700 border-red-200"
+      }`}
     >
       {message}
     </div>
   );
 }
 
-// ─── Main page ────────────────────────────────────────────────────────────────
+// ─── Page ─────────────────────────────────────────────────────────────────────
 
-export default function DashboardConfigEditPage() {
+const JOB_TYPES = ["fulltime", "parttime", "internship", "contract"];
+const SEASONS = ["winter", "spring", "summer", "fall"];
+const SALARY_TYPES = ["hourly", "weekly", "monthly", "yearly"] as const;
+const DURATIONS = ["4 months", "8 months", "12 months", "16 months"];
+
+export default function EditDashboard() {
   const { configId } = useParams<{ configId: string }>();
   const navigate = useNavigate();
 
   const [config, setConfig] = useState<DashboardConfig | null>(null);
+  const [form, setForm] = useState<DashboardConfig | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [toast, setToast] = useState<{
-    msg: string;
-    type: "success" | "error";
-  } | null>(null);
+  const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
 
-  // meta lists
   const [allSkills, setAllSkills] = useState<string[]>([]);
   const [allFields, setAllFields] = useState<string[]>([]);
-  const [locationGroups, setLocationGroups] = useState<
-    { name: string; cities: string[] }[]
-  >([]);
+  const [allLocations, setAllLocations] = useState<string[]>([]);
 
-  // local form state (mirrors config)
-  const [form, setForm] = useState<Partial<DashboardConfig>>({});
-
-  // ── Load config + meta ──
   useEffect(() => {
     if (!configId) return;
-    setLoading(true);
+
+    let cancelled = false;
+
     Promise.all([
       apiFetch<DashboardConfig>(`/dashboard-configs/${configId}`),
       apiFetch<Record<string, Record<string, string[]>>>("/meta/skills"),
@@ -392,39 +271,36 @@ export default function DashboardConfigEditPage() {
       apiFetch<{ name: string; cities: string[] }[]>("/meta/locations"),
     ])
       .then(([cfg, skillsMap, fields, locs]) => {
+        if (cancelled) return;
         setConfig(cfg);
         setForm(cfg);
-        // flatten skills map → string[]
+
         const flat: string[] = [];
         Object.values(skillsMap).forEach((cats) =>
           Object.values(cats).forEach((arr) => flat.push(...arr))
         );
         setAllSkills([...new Set(flat)].sort());
         setAllFields(fields.sort());
-        setLocationGroups(locs);
+        setAllLocations(locs.flatMap((g) => [g.name, ...g.cities]));
       })
-      .catch((e) => setToast({ msg: e.message, type: "error" }))
-      .finally(() => setLoading(false));
+      .catch((e) => {
+        if (!cancelled) setToast({ msg: e.message, type: "error" });
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => { cancelled = true; };
   }, [configId]);
 
-  const allLocationStrings = locationGroups.flatMap((g) => [
-    g.name,
-    ...g.cities,
-  ]);
+  const patch = <K extends keyof DashboardConfig>(key: K, value: DashboardConfig[K]) =>
+    setForm((f) => f ? { ...f, [key]: value } : f);
 
-  // ── Field helpers ──
-  const set = <K extends keyof DashboardConfig>(
-    key: K,
-    value: DashboardConfig[K]
-  ) => setForm((f) => ({ ...f, [key]: value }));
-
-  // ── Save ──
   const save = useCallback(async () => {
     if (!configId || !form) return;
     setSaving(true);
     try {
-      // Build patch payload matching DashboardConfigPatch shape
-      const patch: Record<string, unknown> = {
+      const body = {
         name: form.name,
         description: form.description,
         job_types: form.job_types,
@@ -446,411 +322,237 @@ export default function DashboardConfigEditPage() {
         date_range: form.date_range ?? null,
         active: form.active,
       };
-
-      const updated = await apiFetch<DashboardConfig>(
-        `/dashboard-configs/${configId}`,
-        { method: "PATCH", body: JSON.stringify(patch) }
-      );
+      const updated = await apiFetch<DashboardConfig>(`/dashboard-configs/${configId}`, {
+        method: "PATCH",
+        body: JSON.stringify(body),
+      });
       setConfig(updated);
       setForm(updated);
       setToast({ msg: "Changes saved", type: "success" });
-    } catch (e: unknown) {
-      setToast({
-        msg: e instanceof Error ? e.message : "Save failed",
-        type: "error",
-      });
+    } catch (e) {
+      setToast({ msg: e instanceof Error ? e.message : "Save failed", type: "error" });
     } finally {
       setSaving(false);
     }
   }, [configId, form]);
 
-  // ── Launch / deactivate ──
-  const launch = async () => {
+  const activate = async () => {
     if (!configId) return;
     try {
-      await apiFetch(`/dashboard-configs/${configId}/launch`, {
+      const updated = await apiFetch<DashboardConfig>(`/dashboard-configs/${configId}/launch`, {
         method: "POST",
       });
-      setForm((f) => ({ ...f, active: true }));
+      setConfig(updated);
+      setForm(updated);
       setToast({ msg: "Dashboard activated", type: "success" });
-    } catch (e: unknown) {
-      setToast({
-        msg: e instanceof Error ? e.message : "Launch failed",
-        type: "error",
-      });
+    } catch (e) {
+      setToast({ msg: e instanceof Error ? e.message : "Activate failed", type: "error" });
     }
   };
 
-  // ─── Render ───────────────────────────────────────────────────────────────
-
   if (loading) {
     return (
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          height: "50vh",
-          color: "var(--text-secondary)",
-          fontSize: 14,
-        }}
-      >
-        Loading config…
+      <div className="flex items-center justify-center h-64">
+        <div className="w-5 h-5 border-2 border-zinc-200 border-t-zinc-700 rounded-full animate-spin" />
       </div>
     );
   }
 
-  if (!config || !form) {
-    return (
-      <div style={{ padding: "2rem", color: "var(--text-danger)" }}>
-        Config not found.
-      </div>
-    );
+  if (!form || !config) {
+    return <div className="p-6 text-sm text-red-500">Config not found.</div>;
   }
-
-  const JOB_TYPES = ["fulltime", "parttime", "internship", "contract"];
-  const SEASONS = ["winter", "spring", "summer", "fall"];
-  const SALARY_TYPES = ["hourly", "weekly", "monthly", "yearly"];
-  const DURATIONS = ["4 months", "8 months", "12 months", "16 months"];
 
   return (
-    <div
-      style={{
-        maxWidth: 760,
-        margin: "0 auto",
-        padding: "2rem 1.25rem 4rem",
-        display: "flex",
-        flexDirection: "column",
-        gap: "1.5rem",
-      }}
-    >
-      {/* ── Header ── */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "flex-start",
-          justifyContent: "space-between",
-          gap: 16,
-          flexWrap: "wrap",
-        }}
-      >
+    <div className="max-w-2xl mx-auto p-6 pb-16 flex flex-col gap-5">
+
+      {/* Header */}
+      <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
           <button
             onClick={() => navigate(-1)}
-            style={{
-              background: "none",
-              border: "none",
-              color: "var(--text-secondary)",
-              fontSize: 12,
-              cursor: "pointer",
-              padding: 0,
-              marginBottom: 6,
-              display: "flex",
-              alignItems: "center",
-              gap: 4,
-            }}
+            className="text-xs text-zinc-400 hover:text-zinc-600 mb-1.5 flex items-center gap-1"
           >
             ← Back
           </button>
-          <h1
-            style={{
-              margin: 0,
-              fontSize: 20,
-              fontWeight: 500,
-              color: "var(--text-primary)",
-            }}
-          >
+          <h1 className="text-lg font-semibold text-zinc-900 m-0">
             {form.name || "Untitled dashboard"}
           </h1>
           {config.active && (
-            <span
-              style={{
-                marginTop: 6,
-                display: "inline-block",
-                fontSize: 11,
-                fontWeight: 500,
-                background: "var(--bg-success)",
-                color: "var(--text-success)",
-                border: "0.5px solid var(--border-success)",
-                borderRadius: 6,
-                padding: "2px 8px",
-              }}
-            >
+            <span className="mt-1.5 inline-block text-[10px] font-semibold bg-emerald-50 text-emerald-600 border border-emerald-200 rounded-md px-2 py-0.5">
               Active
             </span>
           )}
         </div>
-        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+        <div className="flex items-center gap-2">
           {!form.active && (
             <button
-              onClick={launch}
-              style={{
-                padding: "8px 16px",
-                fontSize: 13,
-                fontWeight: 500,
-                background: "var(--bg-accent)",
-                color: "var(--text-accent)",
-                border: "0.5px solid var(--border-accent)",
-                borderRadius: "var(--radius)",
-                cursor: "pointer",
-              }}
+              onClick={activate}
+              className="px-3 py-2 text-xs font-semibold border border-zinc-200 rounded-md text-zinc-700 hover:bg-zinc-50 transition-colors"
             >
               Activate
             </button>
           )}
           <button
+            onClick={() => form && setForm(config)}
+            className="px-3 py-2 text-xs font-semibold border border-zinc-200 rounded-md text-zinc-500 hover:bg-zinc-50 transition-colors"
+          >
+            Discard
+          </button>
+          <button
             onClick={save}
             disabled={saving}
-            style={{
-              padding: "8px 20px",
-              fontSize: 13,
-              fontWeight: 500,
-              background: saving ? "var(--surface-1)" : "var(--fill-primary)",
-              color: saving ? "var(--text-muted)" : "var(--on-primary)",
-              border: "none",
-              borderRadius: "var(--radius)",
-              cursor: saving ? "not-allowed" : "pointer",
-            }}
+            className="px-4 py-2 text-xs font-semibold bg-zinc-900 text-white rounded-md hover:bg-zinc-700 disabled:opacity-40 transition-colors"
           >
             {saving ? "Saving…" : "Save changes"}
           </button>
         </div>
       </div>
 
-      {/* ── Basic info ── */}
+      {/* Basic info */}
       <SectionCard title="Basic info">
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        <div className="flex flex-col gap-2">
           <Label>Name</Label>
           <input
-            value={form.name ?? ""}
-            onChange={(e) => set("name", e.target.value)}
+            value={form.name}
+            onChange={(e) => patch("name", e.target.value)}
             placeholder="e.g. Summer 2025 SWE"
-            style={{ width: "100%" }}
+            className="w-full text-sm px-3 py-2 border border-zinc-200 rounded-lg bg-zinc-50 text-zinc-800 outline-none focus:border-zinc-400"
           />
         </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        <div className="flex flex-col gap-2">
           <Label>Description</Label>
           <textarea
             value={form.description ?? ""}
-            onChange={(e) => set("description", e.target.value)}
-            placeholder="Optional notes about this dashboard"
+            onChange={(e) => patch("description", e.target.value)}
+            placeholder="Optional notes"
             rows={2}
-            style={{
-              width: "100%",
-              resize: "vertical",
-              fontFamily: "var(--font-sans)",
-            }}
+            className="w-full text-sm px-3 py-2 border border-zinc-200 rounded-lg bg-zinc-50 text-zinc-800 outline-none focus:border-zinc-400 resize-none"
           />
         </div>
       </SectionCard>
 
-      {/* ── Job type + Season ── */}
+      {/* Job type & season */}
       <SectionCard title="Job type and season">
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        <div className="flex flex-col gap-2">
           <Label>Job types</Label>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-            {JOB_TYPES.map((jt) => {
-              const active = (form.job_types ?? []).includes(jt);
-              return (
-                <button
-                  key={jt}
-                  onClick={() => {
-                    const cur = form.job_types ?? [];
-                    set(
-                      "job_types",
-                      active ? cur.filter((x) => x !== jt) : [...cur, jt]
-                    );
-                  }}
-                  style={{
-                    padding: "5px 14px",
-                    fontSize: 12,
-                    fontWeight: 500,
-                    borderRadius: "var(--radius)",
-                    border: active
-                      ? "0.5px solid var(--border-accent)"
-                      : "0.5px solid var(--border)",
-                    background: active
-                      ? "var(--bg-accent)"
-                      : "var(--surface-0)",
-                    color: active
-                      ? "var(--text-accent)"
-                      : "var(--text-secondary)",
-                    cursor: "pointer",
-                    textTransform: "capitalize",
-                  }}
-                >
-                  {jt}
-                </button>
-              );
-            })}
+          <div className="flex flex-wrap gap-2">
+            {JOB_TYPES.map((jt) => (
+              <ChipToggle
+                key={jt}
+                label={jt}
+                active={(form.job_types ?? []).includes(jt)}
+                onClick={() => {
+                  const cur = form.job_types ?? [];
+                  patch("job_types", cur.includes(jt) ? cur.filter((x) => x !== jt) : [...cur, jt]);
+                }}
+              />
+            ))}
           </div>
         </div>
-
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        <div className="flex flex-col gap-2">
           <Label>Seasons</Label>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-            {SEASONS.map((s) => {
-              const active = (form.seasons ?? []).includes(s);
-              return (
-                <button
-                  key={s}
-                  onClick={() => {
-                    const cur = form.seasons ?? [];
-                    set(
-                      "seasons",
-                      active ? cur.filter((x) => x !== s) : [...cur, s]
-                    );
-                  }}
-                  style={{
-                    padding: "5px 14px",
-                    fontSize: 12,
-                    fontWeight: 500,
-                    borderRadius: "var(--radius)",
-                    border: active
-                      ? "0.5px solid var(--border-accent)"
-                      : "0.5px solid var(--border)",
-                    background: active
-                      ? "var(--bg-accent)"
-                      : "var(--surface-0)",
-                    color: active
-                      ? "var(--text-accent)"
-                      : "var(--text-secondary)",
-                    cursor: "pointer",
-                    textTransform: "capitalize",
-                  }}
-                >
-                  {s}
-                </button>
-              );
-            })}
+          <div className="flex flex-wrap gap-2">
+            {SEASONS.map((s) => (
+              <ChipToggle
+                key={s}
+                label={s}
+                active={(form.seasons ?? []).includes(s)}
+                onClick={() => {
+                  const cur = form.seasons ?? [];
+                  patch("seasons", cur.includes(s) ? cur.filter((x) => x !== s) : [...cur, s]);
+                }}
+              />
+            ))}
           </div>
         </div>
-
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        <div className="flex flex-col gap-2">
           <Label>Work term duration</Label>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-            {DURATIONS.map((d) => {
-              const active = form.work_term_duration === d;
-              return (
-                <button
-                  key={d}
-                  onClick={() =>
-                    set("work_term_duration", active ? undefined : d)
-                  }
-                  style={{
-                    padding: "5px 14px",
-                    fontSize: 12,
-                    fontWeight: 500,
-                    borderRadius: "var(--radius)",
-                    border: active
-                      ? "0.5px solid var(--border-accent)"
-                      : "0.5px solid var(--border)",
-                    background: active
-                      ? "var(--bg-accent)"
-                      : "var(--surface-0)",
-                    color: active
-                      ? "var(--text-accent)"
-                      : "var(--text-secondary)",
-                    cursor: "pointer",
-                  }}
-                >
-                  {d}
-                </button>
-              );
-            })}
+          <div className="flex flex-wrap gap-2">
+            {DURATIONS.map((d) => (
+              <ChipToggle
+                key={d}
+                label={d}
+                active={form.work_term_duration === d}
+                onClick={() => patch("work_term_duration", form.work_term_duration === d ? undefined : d)}
+              />
+            ))}
           </div>
         </div>
       </SectionCard>
 
-      {/* ── Date range ── */}
+      {/* Date range */}
       <SectionCard title="Date range">
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: 16,
-          }}
-        >
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="flex flex-col gap-2">
             <Label>Start</Label>
             <input
               type="date"
               value={form.date_range?.start ?? ""}
               onChange={(e) =>
-                set("date_range", {
-                  ...(form.date_range ?? {}),
-                  start: e.target.value || undefined,
-                })
+                patch("date_range", { ...form.date_range, start: e.target.value || undefined })
               }
+              className="text-sm px-3 py-2 border border-zinc-200 rounded-lg bg-zinc-50 text-zinc-800 outline-none focus:border-zinc-400"
             />
           </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          <div className="flex flex-col gap-2">
             <Label>End</Label>
             <input
               type="date"
               value={form.date_range?.end ?? ""}
               onChange={(e) =>
-                set("date_range", {
-                  ...(form.date_range ?? {}),
-                  end: e.target.value || undefined,
-                })
+                patch("date_range", { ...form.date_range, end: e.target.value || undefined })
               }
+              className="text-sm px-3 py-2 border border-zinc-200 rounded-lg bg-zinc-50 text-zinc-800 outline-none focus:border-zinc-400"
             />
           </div>
         </div>
       </SectionCard>
 
-      {/* ── Fields ── */}
+      {/* Fields */}
       <SectionCard title="Fields">
         <TagInput
           label="Include fields"
           values={form.include_fields ?? []}
           suggestions={allFields}
-          onChange={(v) => set("include_fields", v)}
+          onChange={(v) => patch("include_fields", v)}
           placeholder="Add a field…"
         />
         <TagInput
           label="Exclude fields"
           values={form.exclude_fields ?? []}
           suggestions={allFields}
-          onChange={(v) => set("exclude_fields", v)}
+          onChange={(v) => patch("exclude_fields", v)}
           placeholder="Add a field to exclude…"
         />
       </SectionCard>
 
-      {/* ── Skills ── */}
+      {/* Skills */}
       <SectionCard title="Skills">
         <TagInput
           label="Include skills"
           values={form.include_skills ?? []}
           suggestions={allSkills}
-          onChange={(v) => set("include_skills", v)}
+          onChange={(v) => patch("include_skills", v)}
           placeholder="Add a skill…"
         />
         <TagInput
           label="Exclude skills"
           values={form.exclude_skills ?? []}
           suggestions={allSkills}
-          onChange={(v) => set("exclude_skills", v)}
+          onChange={(v) => patch("exclude_skills", v)}
           placeholder="Add a skill to exclude…"
         />
       </SectionCard>
 
-      {/* ── Location ── */}
+      {/* Location */}
       <SectionCard title="Location">
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        <div className="flex flex-col gap-2">
           <Label>Filter mode</Label>
-          <TogglePill
-            options={[
-              { label: "Preference", value: "preference" },
-              { label: "Hard filter", value: "hard" },
-            ]}
+          <ModeToggle
             value={form.location_mode ?? "preference"}
-            onChange={(v) =>
-              set("location_mode", v as "preference" | "hard")
-            }
+            onChange={(v) => patch("location_mode", v)}
           />
-          <p style={{ margin: 0, fontSize: 12, color: "var(--text-muted)" }}>
+          <p className="text-[11px] text-zinc-400 m-0">
             {form.location_mode === "hard"
               ? "Only show jobs in included locations."
               : "Prefer included locations, but don't hide others."}
@@ -859,191 +561,117 @@ export default function DashboardConfigEditPage() {
         <TagInput
           label="Include locations"
           values={form.include_locations ?? []}
-          suggestions={allLocationStrings}
-          onChange={(v) => set("include_locations", v)}
+          suggestions={allLocations}
+          onChange={(v) => patch("include_locations", v)}
           placeholder="City or country…"
         />
         <TagInput
           label="Exclude locations"
           values={form.exclude_locations ?? []}
-          suggestions={allLocationStrings}
-          onChange={(v) => set("exclude_locations", v)}
+          suggestions={allLocations}
+          onChange={(v) => patch("exclude_locations", v)}
           placeholder="City or country to exclude…"
         />
       </SectionCard>
 
-      {/* ── Companies ── */}
+      {/* Companies */}
       <SectionCard title="Companies">
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        <div className="flex flex-col gap-2">
           <Label>Filter mode</Label>
-          <TogglePill
-            options={[
-              { label: "Preference", value: "preference" },
-              { label: "Hard filter", value: "hard" },
-            ]}
+          <ModeToggle
             value={form.company_mode ?? "preference"}
-            onChange={(v) => set("company_mode", v as "preference" | "hard")}
+            onChange={(v) => patch("company_mode", v)}
           />
         </div>
         <TagInput
           label="Include companies"
           values={form.include_companies ?? []}
-          onChange={(v) => set("include_companies", v)}
+          onChange={(v) => patch("include_companies", v)}
           placeholder="Company name…"
         />
         <TagInput
           label="Exclude companies"
           values={form.exclude_companies ?? []}
-          onChange={(v) => set("exclude_companies", v)}
+          onChange={(v) => patch("exclude_companies", v)}
           placeholder="Company name to exclude…"
         />
       </SectionCard>
 
-      {/* ── Salary ── */}
+      {/* Salary */}
       <SectionCard title="Salary">
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        <div className="flex flex-col gap-2">
           <Label>Pay period</Label>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            {SALARY_TYPES.map((t) => {
-              const active = form.salary?.type === t;
-              return (
-                <button
-                  key={t}
-                  onClick={() =>
-                    set("salary", {
-                      type: t as SalaryConfig["type"],
-                      min: form.salary?.min,
-                      max: form.salary?.max,
-                    })
-                  }
-                  style={{
-                    padding: "5px 14px",
-                    fontSize: 12,
-                    fontWeight: 500,
-                    borderRadius: "var(--radius)",
-                    border: active
-                      ? "0.5px solid var(--border-accent)"
-                      : "0.5px solid var(--border)",
-                    background: active
-                      ? "var(--bg-accent)"
-                      : "var(--surface-0)",
-                    color: active
-                      ? "var(--text-accent)"
-                      : "var(--text-secondary)",
-                    cursor: "pointer",
-                    textTransform: "capitalize",
-                  }}
-                >
-                  {t}
-                </button>
-              );
-            })}
-            {form.salary && (
-              <button
-                onClick={() => set("salary", undefined)}
-                style={{
-                  padding: "5px 10px",
-                  fontSize: 12,
-                  borderRadius: "var(--radius)",
-                  border: "0.5px solid var(--border)",
-                  background: "none",
-                  color: "var(--text-muted)",
-                  cursor: "pointer",
-                }}
-              >
-                Clear
-              </button>
-            )}
+          <div className="flex flex-wrap gap-2">
+            {SALARY_TYPES.map((t) => (
+              <ChipToggle
+                key={t}
+                label={t}
+                active={form.salary?.type === t}
+                onClick={() =>
+                  patch("salary", form.salary?.type === t
+                    ? undefined
+                    : { type: t, min: form.salary?.min, max: form.salary?.max }
+                  )
+                }
+              />
+            ))}
           </div>
         </div>
         {form.salary && (
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: 16,
-            }}
-          >
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="flex flex-col gap-2">
               <Label>Min</Label>
               <input
                 type="number"
                 value={form.salary.min ?? ""}
                 onChange={(e) =>
-                  set("salary", {
+                  patch("salary", {
                     ...form.salary!,
                     min: e.target.value ? Number(e.target.value) : undefined,
                   })
                 }
                 placeholder="0"
+                className="text-sm px-3 py-2 border border-zinc-200 rounded-lg bg-zinc-50 text-zinc-800 outline-none focus:border-zinc-400"
               />
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <div className="flex flex-col gap-2">
               <Label>Max</Label>
               <input
                 type="number"
                 value={form.salary.max ?? ""}
                 onChange={(e) =>
-                  set("salary", {
+                  patch("salary", {
                     ...form.salary!,
                     max: e.target.value ? Number(e.target.value) : undefined,
                   })
                 }
                 placeholder="No limit"
+                className="text-sm px-3 py-2 border border-zinc-200 rounded-lg bg-zinc-50 text-zinc-800 outline-none focus:border-zinc-400"
               />
             </div>
           </div>
         )}
       </SectionCard>
 
-      {/* ── Bottom save bar ── */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "flex-end",
-          gap: 10,
-          paddingTop: 8,
-        }}
-      >
+      {/* Bottom save */}
+      <div className="flex justify-end gap-2 pt-2">
         <button
           onClick={() => setForm(config)}
-          style={{
-            padding: "8px 16px",
-            fontSize: 13,
-            borderRadius: "var(--radius)",
-            border: "0.5px solid var(--border-strong)",
-            background: "none",
-            color: "var(--text-secondary)",
-            cursor: "pointer",
-          }}
+          className="px-3 py-2 text-xs font-semibold border border-zinc-200 rounded-md text-zinc-500 hover:bg-zinc-50 transition-colors"
         >
           Discard changes
         </button>
         <button
           onClick={save}
           disabled={saving}
-          style={{
-            padding: "8px 20px",
-            fontSize: 13,
-            fontWeight: 500,
-            background: saving ? "var(--surface-1)" : "var(--fill-primary)",
-            color: saving ? "var(--text-muted)" : "var(--on-primary)",
-            border: "none",
-            borderRadius: "var(--radius)",
-            cursor: saving ? "not-allowed" : "pointer",
-          }}
+          className="px-4 py-2 text-xs font-semibold bg-zinc-900 text-white rounded-md hover:bg-zinc-700 disabled:opacity-40 transition-colors"
         >
           {saving ? "Saving…" : "Save changes"}
         </button>
       </div>
 
-      {/* ── Toast ── */}
       {toast && (
-        <Toast
-          message={toast.msg}
-          type={toast.type}
-          onDone={() => setToast(null)}
-        />
+        <Toast message={toast.msg} type={toast.type} onDone={() => setToast(null)} />
       )}
     </div>
   );
