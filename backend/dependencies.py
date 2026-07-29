@@ -88,6 +88,13 @@ def get_owned_user_job(user_job_id: str, current_user=Depends(get_current_user))
 
     return user_job
 
+def get_master_config(user_id: str) -> dict | None:
+    res = supabase_admin.table("dashboard_configs") \
+        .select("*") \
+        .eq("user_id", user_id) \
+        .eq("name", "Master") \
+        .single().execute()
+    return res.data
 
 ### HAVE TO IMPLEMENT REDIS_CLIENT HERE AND ATTACH WITH MAIN AND DASHBOARD ENDPOINTS PY FILES
 redis_client = None

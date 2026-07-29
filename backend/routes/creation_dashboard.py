@@ -251,7 +251,7 @@ async def delete_dashboard_config(config_id: UUID, current_user: dict = Depends(
     existing = (
         supabase_admin
         .table("dashboard_configs")
-        .select("id")
+        .select("id", "name")
         .eq("id", str(config_id))
         .eq("user_id", current_user["user_id"])
         .single()
@@ -259,6 +259,9 @@ async def delete_dashboard_config(config_id: UUID, current_user: dict = Depends(
     )
     if not existing.data:
         raise HTTPException(status_code=404, detail="Config not found")
+
+    if existing.data.get("name") == "Master":
+        raise HTTPException(status_code=403, detail="Cannot delete the master config")
 
     supabase_admin.table("dashboard_configs").delete().eq("id", str(config_id)).execute()
     return {"deleted": str(config_id)}
