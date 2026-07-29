@@ -19,7 +19,7 @@ import uuid
 from fastapi.staticfiles import StaticFiles
 from routes.creation_dashboard import router as dashboard_router
 from routes.jobs import router as job_router
-from dependencies import get_owned_user_job, supabase_admin, supabase, get_current_user, FRONTEND_ORIGIN, redis_client
+from dependencies import get_master_config, get_owned_user_job, supabase_admin, supabase, get_current_user, FRONTEND_ORIGIN, redis_client
 from functions.cv_latex import cv_selector, stamp_cv_ids
 from functions.cv_filler import fill_template
 from functions.cv_compiler import compile_cv_pdf, LatexCompileError
@@ -822,10 +822,14 @@ async def new_job_add(file: UploadFile = File(...), current_user = Depends(get_c
     }).execute()
     
     job_id = job_response.data[0]["id"]
+    
+    master_config = get_master_config(current_user["user_id"])
+    master_config_id = master_config["id"] if master_config else None
 
     user_job_response = supabase_admin.table("user_jobs").insert({ 
         "user_id": current_user["user_id"],
         "job_id": job_id,  
+        "dashboard_config_id": master_config_id,
     }).execute()
     user_job_id = user_job_response.data[0]["id"]
     

@@ -6,7 +6,7 @@ from typing import Optional
 from uuid import UUID
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from dependencies import supabase_admin, get_current_user, redis_client
+from dependencies import get_master_config, supabase_admin, get_current_user, redis_client
 
 router = APIRouter()
 
@@ -457,6 +457,23 @@ async def sync_jobs_for_config(
     )
     
     supabase_admin.table("dashboard_configs").update({"last_synced_at": datetime.utcnow().isoformat()}).eq("id", str(config_id)).execute()
+    
+    # Also mirror into master config
+    master = get_master_config(user_id)
+    if master:
+        master_rows = [
+            {
+                "user_id": user_id,
+                "dashboard_config_id": master["id"],
+                "job_id": job["id"],
+                "status": "new",
+            }
+            for job in filtered_jobs
+        ]
+        supabase_admin.table("user_jobs") \
+            .upsert(master_rows, on_conflict="user_id,job_id,dashboard_config_id", ignore_duplicates=True) \
+            .execute()
+            
     return {"synced": len(res.data) if res.data else 0}
 
 
