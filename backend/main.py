@@ -186,6 +186,29 @@ def create_user(user: UserCreate):
         }).execute()
     except Exception as e:
         print(f"Profile insert error: {e}")
+        
+    try:
+        supabase_admin.table("dashboard_configs").insert({
+            "user_id": str(new_user.id),
+            "name": "Master",
+            "description": "Default fallback config",
+            "active": False,
+            "job_types": [],
+            "include_skills": [],
+            "exclude_skills": [],
+            "include_fields": [],
+            "exclude_fields": [],
+            "include_locations": [],
+            "exclude_locations": [],
+            "include_companies": [],
+            "exclude_companies": [],
+            "location_mode": "preference",
+            "company_mode": "preference",
+            "seasons": [],
+            "min_score_threshold": 0,
+        }).execute()
+    except Exception as e:
+        print(f"Master dashboard config insert error: {e}")
 
  ### sign in to fetch the jwt token and hold onto it to maintain state on frontend side
     try:
