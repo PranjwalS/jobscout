@@ -36,6 +36,15 @@ now mainly, we on backend;
     finally;
     now that all major logic is setup;
     2. Go write the backend logic for an auto form filling extension to save manual input times mainly with the ability to fetch the last two donwloads (coverletter, cv) and has access to user profile info and config info entirely and smartly fills all possible fields as much as possible
+    THIS INVOLVES:
+        extract + flatten DOM fields into clean list
+        LLM (low temp) generates ordered JSON action plan: fill, click, scroll, wait — each step annotated with expected outcome ("page_change", "redirect", "accordion_open")
+        playwright replayer executes JSON deterministically step by step
+        after each annotated checkpoint, verify expected outcome happened
+        if mismatch → re-extract DOM + error → back to LLM to regenerate from that step
+        JSON always ends with submit/next click + expected outcome
+    
+    
     3. Write the frontend ui look for said extension - use react now instead of some html stuff - call it like Application Copilot
     4. Refine the extension with AI custom answers to custom questions per job application forms, user can highlight and ask ai assistant to help answer questions -> basically add a chatbot to the extension
 
