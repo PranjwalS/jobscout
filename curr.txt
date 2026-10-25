@@ -44,9 +44,14 @@ now mainly, we on backend;
         if mismatch → re-extract DOM + error → back to LLM to regenerate from that step
         JSON always ends with submit/next click + expected outcome
     
-    
+                important: 
+                Login expirations, CAPTCHA, bot checks, unsupported controls and unexpected redirects need explicit handling. Stop or request human intervention when necessary rather than looping forever.
+                File uploads, checkboxes, radio groups, date pickers, rich-text inputs and multi-selects need dedicated handlers. They shouldn't all be treated as ordinary text fields.
+                Get the DOM state updated listener setup, just check after every move were there relevant importatn changes to DOM that werent expected, should be automatically provided by browser, check it out, keep it efficient if at all.
+                
     3. Write the frontend ui look for said extension - use react now instead of some html stuff - call it like Application Copilot
     4. Refine the extension with AI custom answers to custom questions per job application forms, user can highlight and ask ai assistant to help answer questions -> basically add a chatbot to the extension
+    5. a manual builtin excel file per dashboard, that scaffolds all teh reults from queue of auto apply and that of planned, and applied automatically, and with avbility to add jobs applied manually elsewhere like just full excel file BOOSTED ready for this specific use case only (honestly more of a dashboard)
 
 Ending with:
 	O. Reviewing the usability on the front and refining the logic on the back and full finalizing before moving ahead
