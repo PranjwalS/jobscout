@@ -1,0 +1,71 @@
+plan for the json outputs from llm:
+
+[
+  {
+    "selector": "#first_name",
+    "type": "text",
+    "action": "fill",
+    "value": "Pranjwal"
+  },
+  {
+    "selector": "#exp_level",
+    "type": "select",
+    "action": "select_option",
+    "value": "Entry Level"
+  },
+  {
+    "selector": "#resume_upload",
+    "type": "file",
+    "action": "upload",
+    "value": "path/to/cv.pdf" FROM SUPABASE
+    "confidence" : 100% // LLM rates how sure it is about each mapping, low confidence fields get flagged for user review
+  }
+]
+
+and furthermore, just allowing all sorts of abilities instead of a simple text fill attempt, allow multiple abilities like text fill, select in dropdown, upload, etc,
+and from there on out, allow the llm response to include which ability to be used, and follow that abiltity's path,
+AS AN ORDERED LIST or LINKED MAP, since the order matters for multi page forms.
+
+Just provide the LLM, all the info regarding the current dom on a page flattened, and also the full corresponding profile for a given job both as simple json formats
+along with a prompt explaining all the abilities and the importance of low temp and ordering, and NEVER invent information
+
+input abilities:
+    fill → standard text input
+    select_option → Playwright’s built-in select, pass visible text not value attribute
+    check / uncheck → checkboxes
+    click → radio buttons (click the label not the input)
+    upload → set_input_files
+    date → format-aware fill, detect MM/DD/YYYY vs YYYY-MM-DD from placeholder
+    richtext → click → select all → type (contenteditable divs)
+    skip → file fields that aren’t resume/CL, CAPTCHAs, anything unrecognized
+    click_next/submit -> MORE BELOW
+    custom_input -> answers to long form questions, custom answers, more below
+
+/.//
+
+Don’t just grab fillable fields. For each field, bundle:
+
+the selector
+field type (input/select/checkbox/radio/file/date/richtext)
+label text
+placeholder
+nearby text (legend, fieldset label, section heading, aria-describedby)
+for selects/radios: the full list of options
+
+That context package is what lets the LLM map accurately without hallucinating.
+
+...
+goal = "submit this application"
+while goal not reached:
+    observe (DOM)
+    decide (LLM)
+    act (Playwright)
+
+basically just fetch dom first, give all the context to llm and then make it output a replayable json and then follow that json end to end and look at the Ending
+it should probably involve submitting or just redirecting to some next page, so add that as an ability of click_next/submit, where basically it can move to the next page, but at first
+it actions the loop above, where it checks for any blockers or errors or important dom changes between the start of the whole flow and the current after filling it all (hidden fields appearing)
+and basically it would requery and find all the unfilled ones and send them back to llm with all the relevant info regarding errors and whatnot, all in all with a retry cap of 3 per page like
+loop count, and basically, just end it with submit or going to next page and restarting, turning into well an agent of sorts. for extension we'll just do the initial fill and for autoapply later,
+we'll involve the retry agentic loop so its automated.
+Moreover for custom fields for custom questions, just make the llm flag those and come up with the custom answers to those basically.
+...
