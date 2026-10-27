@@ -6,12 +6,16 @@ plan for the json outputs from llm:
     "type": "text",
     "action": "fill",
     "value": "Pranjwal"
+    "confidence" : 100% // LLM rates how sure it is about each mapping, low confidence fields get flagged for user review
+    "fallback_selector": ".name-input" 
   },
   {
     "selector": "#exp_level",
     "type": "select",
     "action": "select_option",
     "value": "Entry Level"
+    "confidence" : 80% // LLM rates how sure it is about each mapping, low confidence fields get flagged for user review
+    "fallback_selector": ".name-input" 
   },
   {
     "selector": "#resume_upload",
@@ -19,6 +23,7 @@ plan for the json outputs from llm:
     "action": "upload",
     "value": "path/to/cv.pdf" FROM SUPABASE
     "confidence" : 100% // LLM rates how sure it is about each mapping, low confidence fields get flagged for user review
+    "fallback_selector": ".name-input" 
   }
 ]
 
@@ -68,4 +73,15 @@ and basically it would requery and find all the unfilled ones and send them back
 loop count, and basically, just end it with submit or going to next page and restarting, turning into well an agent of sorts. for extension we'll just do the initial fill and for autoapply later,
 we'll involve the retry agentic loop so its automated.
 Moreover for custom fields for custom questions, just make the llm flag those and come up with the custom answers to those basically.
+
+User profile for llm gets generated per job concatenating the exact generated files for the given job, and all the user info and relevant experience, etc all collected initially, along side all
+the relevant info regarding the job end to end. LIKE BASICALLY during the scrape level, after that filter level and before any of the llm generations or scoring, just go out and 
+create a per job profile, a simple light json that fetches with an llm call all the relevant info regarding the job itself and then all the relevant experience, education, projects and just user info
+and just put it all together into a singular proper json called this job-profile file, and that gets used as the knowledge for all of the coverletter, resume, cold email, auto apply, mock interview,
+OA gen, scoring, etc, like just take the standard stored visible job info for the job and turn it into a rich document that goes out and finds all relevant info regarding position, company and person
+and all relevant connections for that position...
+AND JUST MAKE EVERYTHING SKIPPABLE, if it doesnt work then skip it, no blockers, all caught in try catch type blocks.
 ...
+
+
+Blacklist domains that consistently fail (bad DOM, CAPTCHAs, broken forms)
